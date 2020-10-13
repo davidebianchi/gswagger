@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/gorilla/mux"
 )
 
@@ -27,87 +25,25 @@ const (
 
 // Router handle the gorilla mux router and the swagger schema
 type Router struct {
-	router                  *mux.Router
-	SwaggerSchema           *openapi3.Swagger
-	enableRequestValidation bool
-	context                 context.Context
-	swaggerRouter           *openapi3filter.Router
+	router                     *mux.Router
+	SwaggerSchema              *openapi3.Swagger
+	context                    context.Context
+	requiredFromJSONSchemaTags bool
 }
 
-// Handler is the http type handler
-type Handler func(w http.ResponseWriter, req *http.Request)
+// Options to be passed to create the new router and swagger
+type Options struct {
+	Context context.Context
+	Openapi *openapi3.Swagger
 
-// GenerateAndExposeSwagger creates a /documentation/json route on router and
-// expose the generated swagger
-func (r Router) GenerateAndExposeSwagger() error {
-	if err := r.SwaggerSchema.Validate(r.context); err != nil {
-		return fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
-	}
-
-	jsonSwagger, err := r.SwaggerSchema.MarshalJSON()
-	if err != nil {
-		return fmt.Errorf("%w: %s", ErrGenerateSwagger, err)
-	}
-
-	r.router.HandleFunc(JSONDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("content-type", "application/json")
-		w.Write(jsonSwagger)
-	})
-	// TODO: add yaml endpoint
-
-	err = r.swaggerRouter.AddSwagger(r.SwaggerSchema)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// AddRoute add route to router with specific method, path and handler. Add the
-// router also to the swagger schema, after validating it
-func (r Router) AddRoute(method string, path string, handler Handler, operation Operation) (*mux.Route, error) {
-	if operation.Operation != nil {
-		err := operation.Validate(r.context)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		operation.Operation = openapi3.NewOperation()
-		operation.Responses = openapi3.NewResponses()
-	}
-	r.SwaggerSchema.AddOperation(path, method, operation.Operation)
-
-	if operation.Operation != nil && r.enableRequestValidation {
-		return r.router.HandleFunc(path, func(h http.ResponseWriter, req *http.Request) {
-			err := validateRequest(r, req)
-			if err != nil {
-				// TODO: add response for validation response
-				return
-			}
-			handler(h, req)
-
-		}).Methods(method), nil
-	}
-	return r.router.HandleFunc(path, func(w http.ResponseWriter, req *http.Request) {
-		// Handle, when content-type is json, the request/response marshalling? Maybe with a specific option.
-		handler(w, req)
-	}).Methods(method), nil
-}
-
-func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	r.router.ServeHTTP(w, req)
-}
-
-// RouterOptions to be passed to create the new router and swagger
-type RouterOptions struct {
-	Context                 context.Context
-	EnableRequestValidation bool
-	Openapi                 *openapi3.Swagger
+	// RequiredFromJSONSchemaTags will generate a schema that requires any key
+	// tagged with `jsonschema:required`, overriding the
+	// default of requiring any key *not* tagged with `json:,omitempty`.
+	RequiredFromJSONSchemaTags bool
 }
 
 // New generate new router with swagger. Default to OpenAPI 3.0.0
-func New(router *mux.Router, options RouterOptions) (*Router, error) {
+func New(router *mux.Router, options Options) (*Router, error) {
 	swagger, err := generateNewValidSwagger(options.Openapi)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
@@ -119,36 +55,11 @@ func New(router *mux.Router, options RouterOptions) (*Router, error) {
 	}
 
 	return &Router{
-		router:                  router,
-		enableRequestValidation: options.EnableRequestValidation,
-		SwaggerSchema:           swagger,
-		context:                 ctx,
-		swaggerRouter:           openapi3filter.NewRouter(),
+		router:                     router,
+		SwaggerSchema:              swagger,
+		context:                    ctx,
+		requiredFromJSONSchemaTags: options.RequiredFromJSONSchemaTags,
 	}, nil
-}
-
-// Operation type
-type Operation struct {
-	*openapi3.Operation
-	// TODO: handle request and response
-}
-
-func validateRequest(r Router, req *http.Request) error {
-	// Find route
-	route, pathParams, err := r.swaggerRouter.FindRoute(req.Method, req.URL)
-	if err != nil {
-		return err
-	}
-
-	// Validate request
-	requestValidationInput := &openapi3filter.RequestValidationInput{
-		Request:    req,
-		PathParams: pathParams,
-		Route:      route,
-		// TODO: add query params
-	}
-
-	return openapi3filter.ValidateRequest(req.Context(), requestValidationInput)
 }
 
 func generateNewValidSwagger(swagger *openapi3.Swagger) (*openapi3.Swagger, error) {

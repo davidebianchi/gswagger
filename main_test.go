@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	swaggerOpenapiTitle = "test swagger title"
+	swaggerOpenapiTitle   = "test swagger title"
 	swaggerOpenapiVersion = "test swagger version"
 )
 
@@ -46,7 +46,7 @@ func TestIntegration(t *testing.T) {
 	})
 }
 
-func readBody (t *testing.T, requestBody io.ReadCloser) string {
+func readBody(t *testing.T, requestBody io.ReadCloser) string {
 	t.Helper()
 
 	body, err := ioutil.ReadAll(requestBody)
@@ -61,11 +61,11 @@ func setupSwagger(t *testing.T) *Router {
 	context := context.Background()
 	r := mux.NewRouter()
 
-	router, err := New(r, RouterOptions{
+	router, err := New(r, Options{
 		Context: context,
 		Openapi: &openapi3.Swagger{
 			Info: &openapi3.Info{
-				Title: swaggerOpenapiTitle,
+				Title:   swaggerOpenapiTitle,
 				Version: swaggerOpenapiVersion,
 			},
 		},
@@ -78,7 +78,7 @@ func setupSwagger(t *testing.T) *Router {
 	}
 	operation := Operation{}
 
-	_, err = router.AddRoute(http.MethodGet, "/hello", handler, operation)
+	_, err = router.AddRawRoute(http.MethodGet, "/hello", handler, operation)
 	require.NoError(t, err)
 
 	err = router.GenerateAndExposeSwagger()
