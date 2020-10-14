@@ -20,12 +20,12 @@ const (
 
 func TestIntegration(t *testing.T) {
 	t.Run("router works correctly", func(t *testing.T) {
-		router := setupSwagger(t)
+		muxRouter := setupSwagger(t)
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/hello", nil)
 
-		router.ServeHTTP(w, r)
+		muxRouter.ServeHTTP(w, r)
 
 		require.Equal(t, http.StatusOK, w.Result().StatusCode)
 
@@ -36,7 +36,7 @@ func TestIntegration(t *testing.T) {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, JSONDocumentationPath, nil)
 
-			router.ServeHTTP(w, r)
+			muxRouter.ServeHTTP(w, r)
 
 			require.Equal(t, http.StatusOK, w.Result().StatusCode)
 
@@ -55,13 +55,13 @@ func readBody(t *testing.T, requestBody io.ReadCloser) string {
 	return string(body)
 }
 
-func setupSwagger(t *testing.T) *Router {
+func setupSwagger(t *testing.T) *mux.Router {
 	t.Helper()
 
 	context := context.Background()
-	r := mux.NewRouter()
+	muxRouter := mux.NewRouter()
 
-	router, err := New(r, Options{
+	router, err := New(muxRouter, Options{
 		Context: context,
 		Openapi: &openapi3.Swagger{
 			Info: &openapi3.Info{
@@ -84,5 +84,5 @@ func setupSwagger(t *testing.T) *Router {
 	err = router.GenerateAndExposeSwagger()
 	require.NoError(t, err)
 
-	return router
+	return muxRouter
 }

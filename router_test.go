@@ -89,7 +89,7 @@ func TestAddRoute(t *testing.T) {
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodPost, "/users", nil)
 
-		router.ServeHTTP(w, req)
+		r.ServeHTTP(w, req)
 
 		require.Equal(t, http.StatusOK, w.Result().StatusCode)
 
@@ -98,9 +98,9 @@ func TestAddRoute(t *testing.T) {
 
 		t.Run("and generate swagger", func(t *testing.T) {
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, JSONDocumentationPath, nil)
+			req := httptest.NewRequest(http.MethodGet, JSONDocumentationPath, nil)
 
-			router.ServeHTTP(w, r)
+			r.ServeHTTP(w, req)
 
 			require.Equal(t, http.StatusOK, w.Result().StatusCode)
 

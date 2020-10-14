@@ -125,10 +125,6 @@ func (r Router) AddRoute(method string, path string, handler Handler, schema Sch
 	return r.AddRawRoute(method, path, handler, Operation{operation})
 }
 
-func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	r.router.ServeHTTP(w, req)
-}
-
 func (r Router) getSchemaFromInterface(v interface{}, components *openapi3.Components) (*openapi3.Schema, *openapi3.Components, error) {
 	if v == nil {
 		return &openapi3.Schema{}, components, nil
