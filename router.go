@@ -29,11 +29,11 @@ type Handler func(w http.ResponseWriter, req *http.Request)
 // GenerateAndExposeSwagger creates a /documentation/json route on router and
 // expose the generated swagger
 func (r Router) GenerateAndExposeSwagger() error {
-	if err := r.SwaggerSchema.Validate(r.context); err != nil {
+	if err := r.swaggerSchema.Validate(r.context); err != nil {
 		return fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
 	}
 
-	jsonSwagger, err := r.SwaggerSchema.MarshalJSON()
+	jsonSwagger, err := r.swaggerSchema.MarshalJSON()
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrGenerateSwagger, err)
 	}
@@ -66,7 +66,7 @@ func (r Router) AddRawRoute(method string, path string, handler Handler, operati
 		operation.Operation = openapi3.NewOperation()
 		operation.Responses = openapi3.NewResponses()
 	}
-	r.SwaggerSchema.AddOperation(path, method, operation.Operation)
+	r.swaggerSchema.AddOperation(path, method, operation.Operation)
 
 	return r.router.HandleFunc(path, func(w http.ResponseWriter, req *http.Request) {
 		// Handle, when content-type is json, the request/response marshalling? Maybe with a specific option.

@@ -25,7 +25,7 @@ const (
 // Router handle the gorilla mux router and the swagger schema
 type Router struct {
 	router        *mux.Router
-	SwaggerSchema *openapi3.Swagger
+	swaggerSchema *openapi3.Swagger
 	context       context.Context
 }
 
@@ -49,26 +49,24 @@ func New(router *mux.Router, options Options) (*Router, error) {
 
 	return &Router{
 		router:        router,
-		SwaggerSchema: swagger,
+		swaggerSchema: swagger,
 		context:       ctx,
 	}, nil
 }
 
 func generateNewValidSwagger(swagger *openapi3.Swagger) (*openapi3.Swagger, error) {
 	if swagger == nil {
-		swagger = &openapi3.Swagger{
-			OpenAPI: defaultOpenapiVersion,
-		}
+		return nil, fmt.Errorf("swagger is required")
 	}
 	if swagger.OpenAPI == "" {
 		swagger.OpenAPI = defaultOpenapiVersion
 	}
-
 	if swagger.Paths == nil {
 		swagger.Paths = openapi3.Paths{}
 	}
+
 	if swagger.Info == nil {
-		return nil, fmt.Errorf("swagger info must not be empty")
+		return nil, fmt.Errorf("swagger info is required")
 	}
 	if swagger.Info.Title == "" {
 		return nil, fmt.Errorf("swagger info title is required")
