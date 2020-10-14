@@ -37,19 +37,12 @@ func (r Router) GenerateAndExposeSwagger() error {
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrGenerateSwagger, err)
 	}
-
 	r.router.HandleFunc(JSONDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Header().Set("content-type", "application/json")
 		w.Write(jsonSwagger)
 	})
 	// TODO: add yaml endpoint
-
-	// TODO: enable validation
-	// err = r.swaggerRouter.AddSwagger(r.SwaggerSchema)
-	// if err != nil {
-	// 	return err
-	// }
 
 	return nil
 }

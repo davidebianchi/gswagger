@@ -2,9 +2,11 @@ package swagger
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -109,5 +111,55 @@ func TestAddRoute(t *testing.T) {
 			require.NoError(t, err)
 			require.JSONEq(t, string(actual), body)
 		})
+	})
+}
+
+func TestGenerateAndExposeSwagger(t *testing.T) {
+	t.Run("fails swagger validation", func(t *testing.T) {
+		mRouter := mux.NewRouter()
+		router, err := New(mRouter, Options{
+			Openapi: &openapi3.Swagger{
+				Info: &openapi3.Info{
+					Title:   "title",
+					Version: "version",
+				},
+				Components: openapi3.Components{
+					Schemas: map[string]*openapi3.SchemaRef{
+						"&%": {},
+					},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		err = router.GenerateAndExposeSwagger()
+		require.Error(t, err)
+		require.True(t, strings.HasPrefix(err.Error(), fmt.Sprintf("%s:", ErrValidatingSwagger)))
+	})
+
+	t.Run("correctly expose json documentation from loaded swagger file", func(t *testing.T) {
+		mRouter := mux.NewRouter()
+
+		swagger, err := openapi3.NewSwaggerLoader().LoadSwaggerFromFile("testdata/users_employees.json")
+		require.NoError(t, err)
+
+		router, err := New(mRouter, Options{
+			Openapi: swagger,
+		})
+
+		err = router.GenerateAndExposeSwagger()
+		require.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, JSONDocumentationPath, nil)
+		mRouter.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusOK, w.Result().StatusCode)
+		require.True(t, strings.Contains(w.Result().Header.Get("content-type"), "application/json"))
+
+		body := readBody(t, w.Result().Body)
+		actual, err := ioutil.ReadFile("testdata/users_employees.json")
+		require.NoError(t, err)
+		require.JSONEq(t, string(actual), body)
 	})
 }
