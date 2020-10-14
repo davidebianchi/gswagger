@@ -19,27 +19,20 @@ var (
 const (
 	// JSONDocumentationPath is the path of the swagger documentation in json format.
 	JSONDocumentationPath = "/documentation/json"
-
 	defaultOpenapiVersion = "3.0.0"
 )
 
 // Router handle the gorilla mux router and the swagger schema
 type Router struct {
-	router                     *mux.Router
-	SwaggerSchema              *openapi3.Swagger
-	context                    context.Context
-	requiredFromJSONSchemaTags bool
+	router        *mux.Router
+	SwaggerSchema *openapi3.Swagger
+	context       context.Context
 }
 
 // Options to be passed to create the new router and swagger
 type Options struct {
 	Context context.Context
 	Openapi *openapi3.Swagger
-
-	// RequiredFromJSONSchemaTags will generate a schema that requires any key
-	// tagged with `jsonschema:required`, overriding the
-	// default of requiring any key *not* tagged with `json:,omitempty`.
-	RequiredFromJSONSchemaTags bool
 }
 
 // New generate new router with swagger. Default to OpenAPI 3.0.0
@@ -55,10 +48,9 @@ func New(router *mux.Router, options Options) (*Router, error) {
 	}
 
 	return &Router{
-		router:                     router,
-		SwaggerSchema:              swagger,
-		context:                    ctx,
-		requiredFromJSONSchemaTags: options.RequiredFromJSONSchemaTags,
+		router:        router,
+		SwaggerSchema: swagger,
+		context:       ctx,
 	}, nil
 }
 
