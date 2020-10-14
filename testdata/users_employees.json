@@ -1,0 +1,196 @@
+{
+  "components": {},
+  "info": {
+    "title": "test swagger title",
+    "version": "test swagger version"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/employees": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "organization_name": {
+                      "type": "string"
+                    },
+                    "users": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "address": {
+                            "title": "user address",
+                            "type": "string"
+                          },
+                          "groups": {
+                            "default": [
+                              "users"
+                            ],
+                            "items": {
+                              "type": "string"
+                            },
+                            "title": "groups of the user",
+                            "type": "array"
+                          },
+                          "name": {
+                            "example": "Jane",
+                            "title": "The user name",
+                            "type": "string"
+                          },
+                          "phone": {
+                            "title": "mobile number of user",
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "phone",
+                          "address"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "organization_name",
+                    "users"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "address": {
+                        "title": "user address",
+                        "type": "string"
+                      },
+                      "groups": {
+                        "default": [
+                          "users"
+                        ],
+                        "items": {
+                          "type": "string"
+                        },
+                        "title": "groups of the user",
+                        "type": "array"
+                      },
+                      "name": {
+                        "example": "Jane",
+                        "title": "The user name",
+                        "type": "string"
+                      },
+                      "phone": {
+                        "title": "mobile number of user",
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "phone",
+                      "address"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "address": {
+                    "title": "user address",
+                    "type": "string"
+                  },
+                  "groups": {
+                    "default": [
+                      "users"
+                    ],
+                    "items": {
+                      "type": "string"
+                    },
+                    "title": "groups of the user",
+                    "type": "array"
+                  },
+                  "name": {
+                    "example": "Jane",
+                    "title": "The user name",
+                    "type": "string"
+                  },
+                  "phone": {
+                    "title": "mobile number of user",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "name",
+                  "phone",
+                  "address"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "invalid request"
+          }
+        }
+      }
+    }
+  }
+}

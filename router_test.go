@@ -46,6 +46,11 @@ func TestAddRoute(t *testing.T) {
 			Message string `json:"message"`
 		}
 
+		type Employees struct {
+			OrganizationName string `json:"organization_name"`
+			Users            Users  `json:"users" jsonschema:"selected users"`
+		}
+
 		_, err = router.AddRoute(http.MethodPost, "/users", okHandler, Schema{
 			RequestBody: &User{},
 			Responses: map[int]Response{
@@ -64,6 +69,15 @@ func TestAddRoute(t *testing.T) {
 			Responses: map[int]Response{
 				200: {
 					Value: &Users{},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		_, err = router.AddRoute(http.MethodGet, "/employees", okHandler, Schema{
+			Responses: map[int]Response{
+				200: {
+					Value: &Employees{},
 				},
 			},
 		})
@@ -91,10 +105,9 @@ func TestAddRoute(t *testing.T) {
 			require.Equal(t, http.StatusOK, w.Result().StatusCode)
 
 			body := readBody(t, w.Result().Body)
-			actual, err := ioutil.ReadFile("testdata/users.json")
+			actual, err := ioutil.ReadFile("testdata/users_employees.json")
 			require.NoError(t, err)
-			// require.JSONEq(t, string(actual), body)
-			require.Equal(t, string(actual), body)
+			require.JSONEq(t, string(actual), body)
 		})
 	})
 }

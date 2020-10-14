@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/alecthomas/jsonschema"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gorilla/mux"
 )
 
 var (
-	ErrResponses   = errors.New("errors generating responses")
+	// ErrResponses is thrown if error occurs generating responses schemas.
+	ErrResponses = errors.New("errors generating responses")
+	// ErrRequestBody is thrown if error occurs generating responses schemas.
 	ErrRequestBody = errors.New("errors generating request body")
 )
 
@@ -26,9 +29,9 @@ type Handler func(w http.ResponseWriter, req *http.Request)
 // GenerateAndExposeSwagger creates a /documentation/json route on router and
 // expose the generated swagger
 func (r Router) GenerateAndExposeSwagger() error {
-	// if err := r.SwaggerSchema.Validate(r.context); err != nil {
-	// 	return fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
-	// }
+	if err := r.SwaggerSchema.Validate(r.context); err != nil {
+		return fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
+	}
 
 	jsonSwagger, err := r.SwaggerSchema.MarshalJSON()
 	if err != nil {
@@ -55,11 +58,10 @@ func (r Router) GenerateAndExposeSwagger() error {
 // router also to the swagger schema, after validating it
 func (r Router) AddRawRoute(method string, path string, handler Handler, operation Operation) (*mux.Route, error) {
 	if operation.Operation != nil {
-		// err := operation.Validate(r.context)
-		// if err != nil {
-		// 	fmt.Printf("FFFFFFFFF %s \n", err)
-		// 	return nil, err
-		// }
+		err := operation.Validate(r.context)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		operation.Operation = openapi3.NewOperation()
 		operation.Responses = openapi3.NewResponses()
@@ -72,11 +74,13 @@ func (r Router) AddRawRoute(method string, path string, handler Handler, operati
 	}).Methods(method), nil
 }
 
+// Response is the struct containing a single route response.
 type Response struct {
 	Value       interface{}
 	Description string
 }
 
+// Schema of the route.
 type Schema struct {
 	// Parameters  interface{}
 	// Querystring interface{}
@@ -84,6 +88,7 @@ type Schema struct {
 	Responses   map[int]Response
 }
 
+// AddRoute add a route with json schema inferted by passed schema.
 func (r Router) AddRoute(method string, path string, handler Handler, schema Schema) (*mux.Route, error) {
 	operation := openapi3.NewOperation()
 	operation.Responses = make(openapi3.Responses)
@@ -93,7 +98,7 @@ func (r Router) AddRoute(method string, path string, handler Handler, schema Sch
 
 		requestBodySchema, _, err := r.getSchemaFromInterface(schema.RequestBody, nil)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %s", ErrResponses, err)
+			return nil, fmt.Errorf("%w: %s", ErrRequestBody, err)
 		}
 		requestBody = requestBody.WithJSONSchema(requestBodySchema)
 
@@ -107,7 +112,7 @@ func (r Router) AddRoute(method string, path string, handler Handler, schema Sch
 
 			responseSchema, _, err := r.getSchemaFromInterface(v.Value, nil)
 			if err != nil {
-				return nil, fmt.Errorf("%w: %s", ErrRequestBody, err)
+				return nil, fmt.Errorf("%w: %s", ErrResponses, err)
 			}
 
 			response = response.WithDescription(v.Description)
@@ -122,4 +127,34 @@ func (r Router) AddRoute(method string, path string, handler Handler, schema Sch
 
 func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	r.router.ServeHTTP(w, req)
+}
+
+func (r Router) getSchemaFromInterface(v interface{}, components *openapi3.Components) (*openapi3.Schema, *openapi3.Components, error) {
+	if v == nil {
+		return &openapi3.Schema{}, components, nil
+	}
+
+	reflector := &jsonschema.Reflector{
+		DoNotReference: true,
+	}
+
+	jsonSchema := reflector.Reflect(v)
+	jsonschema.Version = ""
+	// Empty definitions. Definitions are not valid in openapi3, which use components.
+	// In the future, we could add an option to fill the components in openapi spec.
+	jsonSchema.Definitions = nil
+
+	// jsonSchema = cleanJSONSchemaVersion(jsonSchema)
+	data, err := jsonSchema.MarshalJSON()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	schema := openapi3.NewSchema()
+	err = schema.UnmarshalJSON(data)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return schema, components, nil
 }
