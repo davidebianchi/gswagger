@@ -17,101 +17,220 @@ import (
 func TestAddRoute(t *testing.T) {
 	okHandler := func(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`OK`))
+		w.Write([]byte("OK"))
 	}
 
-	t.Run("router works correctly - simple request body", func(t *testing.T) {
-		context := context.Background()
-		r := mux.NewRouter()
-		swagger := openapi3.Swagger{
+	type User struct {
+		Name        string   `json:"name" jsonschema:"title=The user name,required" jsonschema_extras:"example=Jane"`
+		PhoneNumber int      `json:"phone" jsonschema:"title=mobile number of user"`
+		Groups      []string `json:"groups,omitempty" jsonschema:"title=groups of the user,default=users"`
+		Address     string   `json:"address" jsonschema:"title=user address"`
+	}
+	type Users []User
+	type errorResponse struct {
+		Message string `json:"message"`
+	}
+
+	type Employees struct {
+		OrganizationName string `json:"organization_name"`
+		Users            Users  `json:"users" jsonschema:"selected users"`
+	}
+	type FormData struct {
+		ID      string `json:"id,omitempty"`
+		Address struct {
+			Street string `json:"street,omitempty"`
+			City   string `json:"city,omitempty"`
+		} `json:"address,omitempty"`
+		ProfileImage string `json:"profileImage,omitempty" jsonschema_extras:"format=binary"`
+	}
+
+	getBaseSwagger := func() *openapi3.Swagger {
+		return &openapi3.Swagger{
 			Info: &openapi3.Info{
 				Title:   swaggerOpenapiTitle,
 				Version: swaggerOpenapiVersion,
 			},
 		}
+	}
 
-		router, err := New(r, Options{
-			Context: context,
-			Openapi: &swagger,
-		})
-		require.NoError(t, err)
-		require.NotNil(t, router)
-
-		type User struct {
-			Name        string   `json:"name" jsonschema:"title=The user name,required" jsonschema_extras:"example=Jane"`
-			PhoneNumber int      `json:"phone" jsonschema:"title=mobile number of user"`
-			Groups      []string `json:"groups,omitempty" jsonschema:"title=groups of the user,default=users"`
-			Address     string   `json:"address" jsonschema:"title=user address"`
-		}
-		type Users []User
-		type errorResponse struct {
-			Message string `json:"message"`
-		}
-
-		type Employees struct {
-			OrganizationName string `json:"organization_name"`
-			Users            Users  `json:"users" jsonschema:"selected users"`
-		}
-
-		_, err = router.AddRoute(http.MethodPost, "/users", okHandler, Schema{
-			RequestBody: &User{},
-			Responses: map[int]Response{
-				201: {
-					Value: "",
-				},
-				401: {
-					Value:       &errorResponse{},
-					Description: "invalid request",
-				},
+	tests := []struct {
+		name         string
+		routes       func(t *testing.T, router *Router)
+		fixturesPath string
+		testPath     string
+		testMethod   string
+	}{
+		{
+			name:         "no routes",
+			routes:       func(t *testing.T, router *Router) {},
+			fixturesPath: "testdata/empty.json",
+		},
+		{
+			name: "empty route schema",
+			routes: func(t *testing.T, router *Router) {
+				_, err := router.AddRoute(http.MethodPost, "/", okHandler, Schema{})
+				require.NoError(t, err)
 			},
-		})
-		require.NoError(t, err)
+			testPath:     "/",
+			testMethod:   http.MethodPost,
+			fixturesPath: "testdata/empty-route-schema.json",
+		},
+		{
+			name: "multiple real routes",
+			routes: func(t *testing.T, router *Router) {
+				_, err := router.AddRoute(http.MethodPost, "/users", okHandler, Schema{
+					RequestBody: &SchemaValue{
+						Content: User{},
+					},
+					Responses: map[int]SchemaValue{
+						201: {
+							Content: "",
+						},
+						401: {
+							Content:     &errorResponse{},
+							Description: "invalid request",
+						},
+					},
+				})
+				require.NoError(t, err)
 
-		_, err = router.AddRoute(http.MethodGet, "/users", okHandler, Schema{
-			Responses: map[int]Response{
-				200: {
-					Value: &Users{},
-				},
+				_, err = router.AddRoute(http.MethodGet, "/users", okHandler, Schema{
+					Responses: map[int]SchemaValue{
+						200: {
+							Content: &Users{},
+						},
+					},
+				})
+				require.NoError(t, err)
+
+				_, err = router.AddRoute(http.MethodGet, "/employees", okHandler, Schema{
+					Responses: map[int]SchemaValue{
+						200: {
+							Content: &Employees{},
+						},
+					},
+				})
+				require.NoError(t, err)
 			},
-		})
-		require.NoError(t, err)
-
-		_, err = router.AddRoute(http.MethodGet, "/employees", okHandler, Schema{
-			Responses: map[int]Response{
-				200: {
-					Value: &Employees{},
-				},
+			testPath:     "/users",
+			fixturesPath: "testdata/users_employees.json",
+		},
+		{
+			name: "multipart request body",
+			routes: func(t *testing.T, router *Router) {
+				_, err := router.AddRoute(http.MethodPost, "/files", okHandler, Schema{
+					RequestBody: &SchemaValue{
+						Content:                   &FormData{},
+						Description:               "upload file",
+						ContentType:               "multipart/form-data",
+						AllowAdditionalProperties: true,
+					},
+					Responses: map[int]SchemaValue{
+						200: {Content: ""},
+					},
+				})
+				require.NoError(t, err)
 			},
-		})
-		require.NoError(t, err)
+			testPath:     "/files",
+			testMethod:   http.MethodPost,
+			fixturesPath: "testdata/multipart-requestbody.json",
+		},
+		{
+			name: "schema with params",
+			routes: func(t *testing.T, router *Router) {
+				var number = 0
+				_, err := router.AddRoute(http.MethodGet, "/users/{userId}", okHandler, Schema{
+					PathParams: map[string]SchemaValue{
+						"userId": {
+							Content:     number,
+							Description: "userId is a number above 0",
+						},
+					},
+				})
+				require.NoError(t, err)
 
-		err = router.GenerateAndExposeSwagger()
-		require.NoError(t, err)
+				_, err = router.AddRoute(http.MethodGet, "/cars/{carId}/drivers/{driverId}", okHandler, Schema{
+					PathParams: map[string]SchemaValue{
+						"carId": {
+							Content: "",
+						},
+						"driverId": {
+							Content: "",
+						},
+					},
+				})
+				require.NoError(t, err)
+			},
+			testPath:     "/users/12",
+			fixturesPath: "testdata/params.json",
+		},
+		{
+			name: "schema with querystring",
+			routes: func(t *testing.T, router *Router) {
+				_, err := router.AddRoute(http.MethodGet, "/projects", okHandler, Schema{
+					QueryParams: map[string]SchemaValue{
+						"projectId": {
+							Content:     "",
+							Description: "projectId is the project id",
+						},
+					},
+				})
+				require.NoError(t, err)
+			},
+			testPath:     "/projects",
+			fixturesPath: "testdata/query.json",
+		},
+	}
 
-		w := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodPost, "/users", nil)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			context := context.Background()
+			r := mux.NewRouter()
 
-		r.ServeHTTP(w, req)
-
-		require.Equal(t, http.StatusOK, w.Result().StatusCode)
-
-		body := readBody(t, w.Result().Body)
-		require.Equal(t, "OK", body)
-
-		t.Run("and generate swagger", func(t *testing.T) {
-			w := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodGet, JSONDocumentationPath, nil)
-
-			r.ServeHTTP(w, req)
-
-			require.Equal(t, http.StatusOK, w.Result().StatusCode)
-
-			body := readBody(t, w.Result().Body)
-			actual, err := ioutil.ReadFile("testdata/users_employees.json")
+			router, err := New(r, Options{
+				Context: context,
+				Openapi: getBaseSwagger(),
+			})
 			require.NoError(t, err)
-			require.JSONEq(t, string(actual), body)
+			require.NotNil(t, router)
+
+			// Add routes to test
+			test.routes(t, router)
+
+			err = router.GenerateAndExposeSwagger()
+			require.NoError(t, err)
+
+			if test.testPath != "" {
+				if test.testMethod == "" {
+					test.testMethod = http.MethodGet
+				}
+
+				w := httptest.NewRecorder()
+				req := httptest.NewRequest(test.testMethod, test.testPath, nil)
+				r.ServeHTTP(w, req)
+
+				require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+				body := readBody(t, w.Result().Body)
+				require.Equal(t, "OK", body)
+			}
+
+			t.Run("and generate swagger documentation in json", func(t *testing.T) {
+				w := httptest.NewRecorder()
+				req := httptest.NewRequest(http.MethodGet, JSONDocumentationPath, nil)
+
+				r.ServeHTTP(w, req)
+
+				require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+				body := readBody(t, w.Result().Body)
+				actual, err := ioutil.ReadFile(test.fixturesPath)
+				require.NoError(t, err)
+				t.Log("actual json schema", body)
+				require.JSONEq(t, string(actual), body)
+			})
 		})
-	})
+	}
 }
 
 func TestGenerateAndExposeSwagger(t *testing.T) {

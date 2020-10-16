@@ -1,0 +1,57 @@
+{
+  "components": {},
+  "info": {
+    "title": "test swagger title",
+    "version": "test swagger version"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/cars/{carId}/drivers/{driverId}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "carId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "driverId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/users/{userId}": {
+      "get": {
+        "parameters": [
+          {
+            "description": "userId is a number above 0",
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    }
+  }
+}
