@@ -10,18 +10,18 @@
       "get": {
         "parameters": [
           {
+            "in": "cookie",
+            "name": "csrftoken",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "boolean. Set 0 to disable and 1 to enable",
             "in": "cookie",
             "name": "debug",
             "schema": {
               "type": "integer"
-            }
-          },
-          {
-            "in": "cookie",
-            "name": "csrftoken",
-            "schema": {
-              "type": "string"
             }
           }
         ],

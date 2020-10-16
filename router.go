@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sort"
 
 	"github.com/alecthomas/jsonschema"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -218,17 +219,24 @@ func (r Router) resolveResponsesSchema(responses map[int]SchemaValue, operation 
 }
 
 func (r Router) resolveParameterSchema(paramType string, paramConfig map[string]SchemaValue, operation *openapi3.Operation) error {
-	for k, v := range paramConfig {
+	var keys = make([]string, 0, len(paramConfig))
+	for k := range paramConfig {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		v := paramConfig[key]
 		var param *openapi3.Parameter
 		switch paramType {
 		case "path":
-			param = openapi3.NewPathParameter(k)
+			param = openapi3.NewPathParameter(key)
 		case "query":
-			param = openapi3.NewQueryParameter(k)
+			param = openapi3.NewQueryParameter(key)
 		case "headers":
-			param = openapi3.NewHeaderParameter(k)
+			param = openapi3.NewHeaderParameter(key)
 		case "cookie":
-			param = openapi3.NewCookieParameter(k)
+			param = openapi3.NewCookieParameter(key)
 		}
 
 		if v.Content != nil {

@@ -10,16 +10,16 @@
       "get": {
         "parameters": [
           {
-            "description": "foo description",
             "in": "header",
-            "name": "foo",
+            "name": "bar",
             "schema": {
               "type": "string"
             }
           },
           {
+            "description": "foo description",
             "in": "header",
-            "name": "bar",
+            "name": "foo",
             "schema": {
               "type": "string"
             }
