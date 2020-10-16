@@ -84,13 +84,20 @@ type SchemaValue struct {
 
 // Schema of the route.
 type Schema struct {
-	PathParams   map[string]SchemaValue
-	QueryParams  map[string]SchemaValue
-	HeaderParams map[string]SchemaValue
-	CookieParams map[string]SchemaValue
-	RequestBody  *SchemaValue
-	Responses    map[int]SchemaValue
+	PathParams  map[string]SchemaValue
+	Querystring map[string]SchemaValue
+	Headers     map[string]SchemaValue
+	Cookies     map[string]SchemaValue
+	RequestBody *SchemaValue
+	Responses   map[int]SchemaValue
 }
+
+const (
+	pathParamsType   = "path"
+	queryParamType   = "query"
+	headersParamType = "headers"
+	cookieParamType  = "cookie"
+)
 
 // AddRoute add a route with json schema inferted by passed schema.
 func (r Router) AddRoute(method string, path string, handler Handler, schema Schema) (*mux.Route, error) {
@@ -107,14 +114,24 @@ func (r Router) AddRoute(method string, path string, handler Handler, schema Sch
 		return nil, fmt.Errorf("%w: %s", ErrResponses, err)
 	}
 
-	err = r.resolvePathParamsSchema(schema.PathParams, operation)
+	err = r.resolveParameterSchema(pathParamsType, schema.PathParams, operation)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrPathParams, err)
 	}
 
-	err = r.resolveQuerySchema(schema.QueryParams, operation)
+	err = r.resolveParameterSchema(queryParamType, schema.Querystring, operation)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrQuerystring, err)
+		return nil, fmt.Errorf("%w: %s", ErrPathParams, err)
+	}
+
+	err = r.resolveParameterSchema(headersParamType, schema.Headers, operation)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrPathParams, err)
+	}
+
+	err = r.resolveParameterSchema(cookieParamType, schema.Cookies, operation)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrPathParams, err)
 	}
 
 	return r.AddRawRoute(method, path, handler, Operation{operation})
@@ -200,43 +217,32 @@ func (r Router) resolveResponsesSchema(responses map[int]SchemaValue, operation 
 	return nil
 }
 
-func (r Router) resolvePathParamsSchema(pathParams map[string]SchemaValue, operation *openapi3.Operation) error {
-	for k, v := range pathParams {
-		parameter := openapi3.NewPathParameter(k)
+func (r Router) resolveParameterSchema(paramType string, paramConfig map[string]SchemaValue, operation *openapi3.Operation) error {
+	for k, v := range paramConfig {
+		var param *openapi3.Parameter
+		switch paramType {
+		case "path":
+			param = openapi3.NewPathParameter(k)
+		case "query":
+			param = openapi3.NewQueryParameter(k)
+		case "headers":
+			param = openapi3.NewHeaderParameter(k)
+		case "cookie":
+			param = openapi3.NewCookieParameter(k)
+		}
 
 		if v.Content != nil {
 			schema, err := r.getSchemaFromInterface(v.Content, v.AllowAdditionalProperties)
 			if err != nil {
 				return err
 			}
-			parameter = parameter.WithSchema(schema)
+			param = param.WithSchema(schema)
 		}
 		if v.Description != "" {
-			parameter = parameter.WithDescription(v.Description)
+			param = param.WithDescription(v.Description)
 		}
 
-		operation.AddParameter(parameter)
-	}
-
-	return nil
-}
-
-func (r Router) resolveQuerySchema(qsParams map[string]SchemaValue, operation *openapi3.Operation) error {
-	for k, v := range qsParams {
-		queryParams := openapi3.NewQueryParameter(k)
-
-		if v.Content != nil {
-			schema, err := r.getSchemaFromInterface(v.Content, v.AllowAdditionalProperties)
-			if err != nil {
-				return err
-			}
-			queryParams = queryParams.WithSchema(schema)
-		}
-		if v.Description != "" {
-			queryParams = queryParams.WithDescription(v.Description)
-		}
-
-		operation.AddParameter(queryParams)
+		operation.AddParameter(param)
 	}
 
 	return nil

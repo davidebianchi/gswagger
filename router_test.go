@@ -168,7 +168,7 @@ func TestAddRoute(t *testing.T) {
 			name: "schema with querystring",
 			routes: func(t *testing.T, router *Router) {
 				_, err := router.AddRoute(http.MethodGet, "/projects", okHandler, Schema{
-					QueryParams: map[string]SchemaValue{
+					Querystring: map[string]SchemaValue{
 						"projectId": {
 							Content:     "",
 							Description: "projectId is the project id",
@@ -179,6 +179,44 @@ func TestAddRoute(t *testing.T) {
 			},
 			testPath:     "/projects",
 			fixturesPath: "testdata/query.json",
+		},
+		{
+			name: "schema with headers",
+			routes: func(t *testing.T, router *Router) {
+				_, err := router.AddRoute(http.MethodGet, "/projects", okHandler, Schema{
+					Headers: map[string]SchemaValue{
+						"foo": {
+							Content:     "",
+							Description: "foo description",
+						},
+						"bar": {
+							Content: "",
+						},
+					},
+				})
+				require.NoError(t, err)
+			},
+			testPath:     "/projects",
+			fixturesPath: "testdata/headers.json",
+		},
+		{
+			name: "schema with cookies",
+			routes: func(t *testing.T, router *Router) {
+				_, err := router.AddRoute(http.MethodGet, "/projects", okHandler, Schema{
+					Cookies: map[string]SchemaValue{
+						"debug": {
+							Content:     0,
+							Description: "boolean. Set 0 to disable and 1 to enable",
+						},
+						"csrftoken": {
+							Content: "",
+						},
+					},
+				})
+				require.NoError(t, err)
+			},
+			testPath:     "/projects",
+			fixturesPath: "testdata/cookies.json",
 		},
 	}
 
