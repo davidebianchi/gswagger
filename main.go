@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gorilla/mux"
@@ -76,4 +77,25 @@ func generateNewValidSwagger(swagger *openapi3.Swagger) (*openapi3.Swagger, erro
 	}
 
 	return swagger, nil
+}
+
+// GenerateAndExposeSwagger creates a /documentation/json route on router and
+// expose the generated swagger
+func (r Router) GenerateAndExposeSwagger() error {
+	if err := r.swaggerSchema.Validate(r.context); err != nil {
+		return fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
+	}
+
+	jsonSwagger, err := r.swaggerSchema.MarshalJSON()
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrGenerateSwagger, err)
+	}
+	r.router.HandleFunc(JSONDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonSwagger)
+	})
+	// TODO: add yaml endpoint
+
+	return nil
 }

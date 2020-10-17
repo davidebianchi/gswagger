@@ -25,32 +25,10 @@ var (
 // Operation type
 type Operation struct {
 	*openapi3.Operation
-	// TODO: handle request and response
 }
 
 // Handler is the http type handler
 type Handler func(w http.ResponseWriter, req *http.Request)
-
-// GenerateAndExposeSwagger creates a /documentation/json route on router and
-// expose the generated swagger
-func (r Router) GenerateAndExposeSwagger() error {
-	if err := r.swaggerSchema.Validate(r.context); err != nil {
-		return fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
-	}
-
-	jsonSwagger, err := r.swaggerSchema.MarshalJSON()
-	if err != nil {
-		return fmt.Errorf("%w: %s", ErrGenerateSwagger, err)
-	}
-	r.router.HandleFunc(JSONDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(jsonSwagger)
-	})
-	// TODO: add yaml endpoint
-
-	return nil
-}
 
 // AddRawRoute add route to router with specific method, path and handler. Add the
 // router also to the swagger schema, after validating it
@@ -94,10 +72,10 @@ type Schema struct {
 }
 
 const (
-	pathParamsType   = "path"
-	queryParamType   = "query"
-	headersParamType = "headers"
-	cookieParamType  = "cookie"
+	pathParamsType  = "path"
+	queryParamType  = "query"
+	headerParamType = "header"
+	cookieParamType = "cookie"
 )
 
 // AddRoute add a route with json schema inferted by passed schema.
@@ -125,7 +103,7 @@ func (r Router) AddRoute(method string, path string, handler Handler, schema Sch
 		return nil, fmt.Errorf("%w: %s", ErrPathParams, err)
 	}
 
-	err = r.resolveParameterSchema(headersParamType, schema.Headers, operation)
+	err = r.resolveParameterSchema(headerParamType, schema.Headers, operation)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrPathParams, err)
 	}
@@ -229,23 +207,28 @@ func (r Router) resolveParameterSchema(paramType string, paramConfig map[string]
 		v := paramConfig[key]
 		var param *openapi3.Parameter
 		switch paramType {
-		case "path":
+		case pathParamsType:
 			param = openapi3.NewPathParameter(key)
-		case "query":
+		case queryParamType:
 			param = openapi3.NewQueryParameter(key)
-		case "headers":
+		case headerParamType:
 			param = openapi3.NewHeaderParameter(key)
-		case "cookie":
+		case cookieParamType:
 			param = openapi3.NewCookieParameter(key)
+		default:
+			return fmt.Errorf("invalid param type")
 		}
 
+		schema := openapi3.NewSchema()
 		if v.Content != nil {
-			schema, err := r.getSchemaFromInterface(v.Content, v.AllowAdditionalProperties)
+			var err error
+			schema, err = r.getSchemaFromInterface(v.Content, v.AllowAdditionalProperties)
 			if err != nil {
 				return err
 			}
-			param = param.WithSchema(schema)
 		}
+		param = param.WithSchema(schema)
+
 		if v.Description != "" {
 			param = param.WithDescription(v.Description)
 		}
