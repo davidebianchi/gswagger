@@ -1,0 +1,29 @@
+{
+  "components": {},
+  "info": {
+    "title": "test swagger title",
+    "version": "test swagger version"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/projects": {
+      "get": {
+        "parameters": [
+          {
+            "description": "projectId is the project id",
+            "in": "query",
+            "name": "projectId",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    }
+  }
+}

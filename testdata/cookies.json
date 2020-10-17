@@ -1,0 +1,36 @@
+{
+  "components": {},
+  "info": {
+    "title": "test swagger title",
+    "version": "test swagger version"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/projects": {
+      "get": {
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "csrftoken",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "boolean. Set 0 to disable and 1 to enable",
+            "in": "cookie",
+            "name": "debug",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    }
+  }
+}
