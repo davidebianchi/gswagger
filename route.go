@@ -50,23 +50,38 @@ func (r Router) AddRawRoute(method string, path string, handler Handler, operati
 	}).Methods(method), nil
 }
 
-// SchemaValue is the struct containing the schema information.
-type SchemaValue struct {
-	Content     interface{}
-	Description string
+// Content is the type of a content.
+// The key of the map define the content-type.
+type Content map[string]Schema
 
-	ContentType               string
+// Schema contains the value and if properties allow additional properties.
+type Schema struct {
+	Value                     interface{}
 	AllowAdditionalProperties bool
 }
 
-// Schema of the route.
-type Schema struct {
-	PathParams  map[string]SchemaValue
-	Querystring map[string]SchemaValue
-	Headers     map[string]SchemaValue
-	Cookies     map[string]SchemaValue
-	RequestBody *SchemaValue
-	Responses   map[int]SchemaValue
+// ParameterValue is the struct containing the schema or the content information.
+// If content is specified, it takes precedence.
+type ParameterValue map[string]struct {
+	Content     Content
+	Schema      *Schema
+	Description string
+}
+
+// ContentValue is the struct containing the content information.
+type ContentValue struct {
+	Content     Content
+	Description string
+}
+
+// Definitions of the route.
+type Definitions struct {
+	PathParams  ParameterValue
+	Querystring ParameterValue
+	Headers     ParameterValue
+	Cookies     ParameterValue
+	RequestBody *ContentValue
+	Responses   map[int]ContentValue
 }
 
 const (
@@ -77,7 +92,7 @@ const (
 )
 
 // AddRoute add a route with json schema inferted by passed schema.
-func (r Router) AddRoute(method string, path string, handler Handler, schema Schema) (*mux.Route, error) {
+func (r Router) AddRoute(method string, path string, handler Handler, schema Definitions) (*mux.Route, error) {
 	operation := openapi3.NewOperation()
 	operation.Responses = make(openapi3.Responses)
 
@@ -144,24 +159,17 @@ func (r Router) getSchemaFromInterface(v interface{}, allowAdditionalProperties 
 	return schema, nil
 }
 
-func (r Router) resolveRequestBodySchema(bodySchema *SchemaValue, operation *openapi3.Operation) error {
+func (r Router) resolveRequestBodySchema(bodySchema *ContentValue, operation *openapi3.Operation) error {
 	if bodySchema == nil {
 		return nil
 	}
-	requestBodySchema, err := r.getSchemaFromInterface(bodySchema.Content, bodySchema.AllowAdditionalProperties)
+	requestBody := openapi3.NewRequestBody()
+
+	content, err := r.addContentToOASSchema(bodySchema.Content)
 	if err != nil {
 		return err
 	}
-
-	requestBody := openapi3.NewRequestBody()
-	switch bodySchema.ContentType {
-	case "multipart/form-data":
-		requestBody = requestBody.WithFormDataSchema(requestBodySchema)
-	case "application/json", "":
-		requestBody = requestBody.WithJSONSchema(requestBodySchema)
-	default:
-		return fmt.Errorf("invalid content-type in request body")
-	}
+	requestBody = requestBody.WithContent(content)
 
 	if bodySchema.Description != "" {
 		requestBody.WithDescription(bodySchema.Description)
@@ -173,20 +181,19 @@ func (r Router) resolveRequestBodySchema(bodySchema *SchemaValue, operation *ope
 	return nil
 }
 
-func (r Router) resolveResponsesSchema(responses map[int]SchemaValue, operation *openapi3.Operation) error {
+func (r Router) resolveResponsesSchema(responses map[int]ContentValue, operation *openapi3.Operation) error {
 	if responses == nil {
 		operation.Responses = openapi3.NewResponses()
 	}
 	for statusCode, v := range responses {
 		response := openapi3.NewResponse()
-
-		responseSchema, err := r.getSchemaFromInterface(v.Content, v.AllowAdditionalProperties)
+		content, err := r.addContentToOASSchema(v.Content)
 		if err != nil {
 			return err
 		}
+		response = response.WithContent(content)
 
 		response = response.WithDescription(v.Description)
-		response = response.WithJSONSchema(responseSchema)
 
 		operation.AddResponse(statusCode, response)
 	}
@@ -194,7 +201,7 @@ func (r Router) resolveResponsesSchema(responses map[int]SchemaValue, operation 
 	return nil
 }
 
-func (r Router) resolveParameterSchema(paramType string, paramConfig map[string]SchemaValue, operation *openapi3.Operation) error {
+func (r Router) resolveParameterSchema(paramType string, paramConfig ParameterValue, operation *openapi3.Operation) error {
 	var keys = make([]string, 0, len(paramConfig))
 	for k := range paramConfig {
 		keys = append(keys, k)
@@ -217,28 +224,43 @@ func (r Router) resolveParameterSchema(paramType string, paramConfig map[string]
 			return fmt.Errorf("invalid param type")
 		}
 
-		schema := openapi3.NewSchema()
+		if v.Description != "" {
+			param = param.WithDescription(v.Description)
+		}
+
 		if v.Content != nil {
-			var err error
-			schema, err = r.getSchemaFromInterface(v.Content, v.AllowAdditionalProperties)
+			content, err := r.addContentToOASSchema(v.Content)
 			if err != nil {
 				return err
 			}
-		}
-
-		if v.ContentType != "" {
-			param.Content = openapi3.NewContent()
-			param.Content[v.ContentType] = openapi3.NewMediaType().WithSchema(schema)
+			param.Content = content
 		} else {
-			param = param.WithSchema(schema)
-		}
-
-		if v.Description != "" {
-			param = param.WithDescription(v.Description)
+			schema := openapi3.NewSchema()
+			if v.Schema != nil {
+				var err error
+				schema, err = r.getSchemaFromInterface(v.Schema.Value, v.Schema.AllowAdditionalProperties)
+				if err != nil {
+					return err
+				}
+			}
+			param.WithSchema(schema)
 		}
 
 		operation.AddParameter(param)
 	}
 
 	return nil
+}
+
+func (r Router) addContentToOASSchema(content Content) (openapi3.Content, error) {
+	oasContent := openapi3.NewContent()
+	for k, v := range content {
+		var err error
+		schema, err := r.getSchemaFromInterface(v.Value, v.AllowAdditionalProperties)
+		if err != nil {
+			return nil, err
+		}
+		oasContent[k] = openapi3.NewMediaType().WithSchema(schema)
+	}
+	return oasContent, nil
 }

@@ -58,7 +58,7 @@ func TestAddRoute(t *testing.T) {
 		{
 			name: "empty route schema",
 			routes: func(t *testing.T, router *Router) {
-				_, err := router.AddRoute(http.MethodPost, "/", okHandler, Schema{})
+				_, err := router.AddRoute(http.MethodPost, "/", okHandler, Definitions{})
 				require.NoError(t, err)
 			},
 			testPath:     "/",
@@ -68,35 +68,45 @@ func TestAddRoute(t *testing.T) {
 		{
 			name: "multiple real routes",
 			routes: func(t *testing.T, router *Router) {
-				_, err := router.AddRoute(http.MethodPost, "/users", okHandler, Schema{
-					RequestBody: &SchemaValue{
-						Content: User{},
+				_, err := router.AddRoute(http.MethodPost, "/users", okHandler, Definitions{
+					RequestBody: &ContentValue{
+						Content: Content{
+							"application/json": {Value: User{}},
+						},
 					},
-					Responses: map[int]SchemaValue{
+					Responses: map[int]ContentValue{
 						201: {
-							Content: "",
+							Content: Content{
+								"text/html": {Value: ""},
+							},
 						},
 						401: {
-							Content:     &errorResponse{},
+							Content: Content{
+								"application/json": {Value: &errorResponse{}},
+							},
 							Description: "invalid request",
 						},
 					},
 				})
 				require.NoError(t, err)
 
-				_, err = router.AddRoute(http.MethodGet, "/users", okHandler, Schema{
-					Responses: map[int]SchemaValue{
+				_, err = router.AddRoute(http.MethodGet, "/users", okHandler, Definitions{
+					Responses: map[int]ContentValue{
 						200: {
-							Content: &Users{},
+							Content: Content{
+								"application/json": {Value: &Users{}},
+							},
 						},
 					},
 				})
 				require.NoError(t, err)
 
-				_, err = router.AddRoute(http.MethodGet, "/employees", okHandler, Schema{
-					Responses: map[int]SchemaValue{
+				_, err = router.AddRoute(http.MethodGet, "/employees", okHandler, Definitions{
+					Responses: map[int]ContentValue{
 						200: {
-							Content: &Employees{},
+							Content: Content{
+								"application/json": {Value: &Employees{}},
+							},
 						},
 					},
 				})
@@ -108,15 +118,24 @@ func TestAddRoute(t *testing.T) {
 		{
 			name: "multipart request body",
 			routes: func(t *testing.T, router *Router) {
-				_, err := router.AddRoute(http.MethodPost, "/files", okHandler, Schema{
-					RequestBody: &SchemaValue{
-						Content:                   &FormData{},
-						Description:               "upload file",
-						ContentType:               "multipart/form-data",
-						AllowAdditionalProperties: true,
+				_, err := router.AddRoute(http.MethodPost, "/files", okHandler, Definitions{
+					RequestBody: &ContentValue{
+						Content: Content{
+							"multipart/form-data": {
+								Value:                     &FormData{},
+								AllowAdditionalProperties: true,
+							},
+						},
+						Description: "upload file",
 					},
-					Responses: map[int]SchemaValue{
-						200: {Content: ""},
+					Responses: map[int]ContentValue{
+						200: {
+							Content: Content{
+								"application/json": {
+									Value: "",
+								},
+							},
+						},
 					},
 				})
 				require.NoError(t, err)
@@ -129,23 +148,23 @@ func TestAddRoute(t *testing.T) {
 			name: "schema with params",
 			routes: func(t *testing.T, router *Router) {
 				var number = 0
-				_, err := router.AddRoute(http.MethodGet, "/users/{userId}", okHandler, Schema{
-					PathParams: map[string]SchemaValue{
+				_, err := router.AddRoute(http.MethodGet, "/users/{userId}", okHandler, Definitions{
+					PathParams: ParameterValue{
 						"userId": {
-							Content:     number,
+							Schema:      &Schema{Value: number},
 							Description: "userId is a number above 0",
 						},
 					},
 				})
 				require.NoError(t, err)
 
-				_, err = router.AddRoute(http.MethodGet, "/cars/{carId}/drivers/{driverId}", okHandler, Schema{
-					PathParams: map[string]SchemaValue{
+				_, err = router.AddRoute(http.MethodGet, "/cars/{carId}/drivers/{driverId}", okHandler, Definitions{
+					PathParams: ParameterValue{
 						"carId": {
-							Content: "",
+							Schema: &Schema{Value: ""},
 						},
 						"driverId": {
-							Content: "",
+							Schema: &Schema{Value: ""},
 						},
 					},
 				})
@@ -157,10 +176,10 @@ func TestAddRoute(t *testing.T) {
 		{
 			name: "schema with querystring",
 			routes: func(t *testing.T, router *Router) {
-				_, err := router.AddRoute(http.MethodGet, "/projects", okHandler, Schema{
-					Querystring: map[string]SchemaValue{
+				_, err := router.AddRoute(http.MethodGet, "/projects", okHandler, Definitions{
+					Querystring: ParameterValue{
 						"projectId": {
-							Content:     "",
+							Schema:      &Schema{Value: ""},
 							Description: "projectId is the project id",
 						},
 					},
@@ -173,14 +192,14 @@ func TestAddRoute(t *testing.T) {
 		{
 			name: "schema with headers",
 			routes: func(t *testing.T, router *Router) {
-				_, err := router.AddRoute(http.MethodGet, "/projects", okHandler, Schema{
-					Headers: map[string]SchemaValue{
+				_, err := router.AddRoute(http.MethodGet, "/projects", okHandler, Definitions{
+					Headers: ParameterValue{
 						"foo": {
-							Content:     "",
+							Schema:      &Schema{Value: ""},
 							Description: "foo description",
 						},
 						"bar": {
-							Content: "",
+							Schema: &Schema{Value: ""},
 						},
 					},
 				})
@@ -192,14 +211,14 @@ func TestAddRoute(t *testing.T) {
 		{
 			name: "schema with cookies",
 			routes: func(t *testing.T, router *Router) {
-				_, err := router.AddRoute(http.MethodGet, "/projects", okHandler, Schema{
-					Cookies: map[string]SchemaValue{
+				_, err := router.AddRoute(http.MethodGet, "/projects", okHandler, Definitions{
+					Cookies: ParameterValue{
 						"debug": {
-							Content:     0,
+							Schema:      &Schema{Value: 0},
 							Description: "boolean. Set 0 to disable and 1 to enable",
 						},
 						"csrftoken": {
-							Content: "",
+							Schema: &Schema{Value: ""},
 						},
 					},
 				})
@@ -209,25 +228,25 @@ func TestAddRoute(t *testing.T) {
 			fixturesPath: "testdata/cookies.json",
 		},
 		{
-			name: "schema defined without content",
+			name: "schema defined without value",
 			routes: func(t *testing.T, router *Router) {
-				_, err := router.AddRoute(http.MethodPost, "/{id}", okHandler, Schema{
-					RequestBody: &SchemaValue{
+				_, err := router.AddRoute(http.MethodPost, "/{id}", okHandler, Definitions{
+					RequestBody: &ContentValue{
 						Description: "request body without schema",
 					},
-					Responses: map[int]SchemaValue{
+					Responses: map[int]ContentValue{
 						204: {},
 					},
-					PathParams: map[string]SchemaValue{
+					PathParams: ParameterValue{
 						"id": {},
 					},
-					Querystring: map[string]SchemaValue{
+					Querystring: ParameterValue{
 						"q": {},
 					},
-					Headers: map[string]SchemaValue{
+					Headers: ParameterValue{
 						"key": {},
 					},
-					Cookies: map[string]SchemaValue{
+					Cookies: ParameterValue{
 						"cookie1": {},
 					},
 				})
@@ -283,7 +302,7 @@ func TestAddRoute(t *testing.T) {
 				body := readBody(t, w.Result().Body)
 				actual, err := ioutil.ReadFile(test.fixturesPath)
 				require.NoError(t, err)
-				require.JSONEq(t, string(actual), body, "actual json data: ", string(actual))
+				require.JSONEq(t, string(actual), body, "actual json data: %s", string(actual))
 			})
 		})
 	}
@@ -299,7 +318,7 @@ func TestResolveRequestBodySchema(t *testing.T) {
 	}
 	tests := []struct {
 		name         string
-		bodySchema   *SchemaValue
+		bodySchema   *ContentValue
 		expectedErr  error
 		expectedJSON string
 	}{
@@ -311,9 +330,12 @@ func TestResolveRequestBodySchema(t *testing.T) {
 		{
 			name:        "schema multipart",
 			expectedErr: nil,
-			bodySchema: &SchemaValue{
-				Content:     &TestStruct{},
-				ContentType: "multipart/form-data",
+			bodySchema: &ContentValue{
+				Content: Content{
+					"multipart/form-data": {
+						Value: &TestStruct{},
+					},
+				},
 			},
 			expectedJSON: `{
 				"requestBody": {
@@ -335,32 +357,10 @@ func TestResolveRequestBodySchema(t *testing.T) {
 		{
 			name:        "content-type application/json",
 			expectedErr: nil,
-			bodySchema: &SchemaValue{
-				Content:     &TestStruct{},
-				ContentType: "application/json",
-			},
-			expectedJSON: `{
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"type":"object",
-								"additionalProperties":false,
-								"properties": {
-									"id": {"type":"string"}
-								}
-							}
-						}
-					}
+			bodySchema: &ContentValue{
+				Content: Content{
+					"application/json": {Value: &TestStruct{}},
 				},
-				"responses": null
-			}`,
-		},
-		{
-			name:        "no content-type - default to json",
-			expectedErr: nil,
-			bodySchema: &SchemaValue{
-				Content: &TestStruct{},
 			},
 			expectedJSON: `{
 				"requestBody": {
@@ -382,8 +382,12 @@ func TestResolveRequestBodySchema(t *testing.T) {
 		{
 			name:        "with description",
 			expectedErr: nil,
-			bodySchema: &SchemaValue{
-				Content:     &TestStruct{},
+			bodySchema: &ContentValue{
+				Content: Content{
+					"application/json": {
+						Value: &TestStruct{},
+					},
+				},
 				Description: "my custom description",
 			},
 			expectedJSON: `{
@@ -404,23 +408,52 @@ func TestResolveRequestBodySchema(t *testing.T) {
 				"responses": null
 			}`,
 		},
-		// FIXME: this test case exhibits a wrong behavior. It should be supported.
 		{
-			name:        "content type text/plain",
-			expectedErr: fmt.Errorf("invalid content-type in request body"),
-			bodySchema: &SchemaValue{
-				Content:     &TestStruct{},
-				ContentType: "text/plain",
+			name: "content type text/plain",
+			bodySchema: &ContentValue{
+				Content: Content{
+					"text/plain": {Value: ""},
+				},
 			},
+			expectedJSON: `{
+				"requestBody": {
+					"content": {
+						"text/plain": {
+							"schema": {
+								"type":"string"
+							}
+						}
+					}
+				},
+				"responses": null
+			}`,
 		},
-		// FIXME: this test case exhibits a wrong behavior. It should be supported.
 		{
-			name:        "generic content type - it represent all types",
-			expectedErr: fmt.Errorf("invalid content-type in request body"),
-			bodySchema: &SchemaValue{
-				Content:     &TestStruct{},
-				ContentType: "*/*",
+			name: "generic content type - it represent all types",
+			bodySchema: &ContentValue{
+				Content: Content{
+					"*/*": {
+						Value:                     &TestStruct{},
+						AllowAdditionalProperties: true,
+					},
+				},
 			},
+			expectedJSON: `{
+				"requestBody": {
+					"content": {
+						"*/*": {
+							"schema": {
+								"type":"object",
+								"properties": {
+									"id": {"type": "string"}
+								},
+								"additionalProperties": true
+							}
+						}
+					}
+				},
+				"responses": null
+			}`,
 		},
 	}
 
@@ -439,7 +472,7 @@ func TestResolveRequestBodySchema(t *testing.T) {
 			if err == nil {
 				data, _ := operation.MarshalJSON()
 				jsonData := string(data)
-				require.JSONEq(t, test.expectedJSON, jsonData, "actual json data: ", jsonData)
+				require.JSONEq(t, test.expectedJSON, jsonData, "actual json data: %s", jsonData)
 				require.NoError(t, err)
 			}
 			require.Equal(t, test.expectedErr, err)
@@ -453,7 +486,7 @@ func TestResolveResponsesSchema(t *testing.T) {
 	}
 	tests := []struct {
 		name            string
-		responsesSchema map[int]SchemaValue
+		responsesSchema map[int]ContentValue
 		expectedErr     error
 		expectedJSON    string
 	}{
@@ -464,9 +497,11 @@ func TestResolveResponsesSchema(t *testing.T) {
 		},
 		{
 			name: "with 1 status code",
-			responsesSchema: map[int]SchemaValue{
+			responsesSchema: map[int]ContentValue{
 				200: {
-					Content: &TestStruct{},
+					Content: Content{
+						"application/json": {Value: &TestStruct{}},
+					},
 				},
 			},
 			expectedErr: nil,
@@ -493,12 +528,16 @@ func TestResolveResponsesSchema(t *testing.T) {
 		},
 		{
 			name: "with more status codes",
-			responsesSchema: map[int]SchemaValue{
+			responsesSchema: map[int]ContentValue{
 				200: {
-					Content: &TestStruct{},
+					Content: Content{
+						"application/json": {Value: &TestStruct{}},
+					},
 				},
 				400: {
-					Content: "",
+					Content: Content{
+						"application/json": {Value: ""},
+					},
 				},
 			},
 			expectedErr: nil,
@@ -535,9 +574,11 @@ func TestResolveResponsesSchema(t *testing.T) {
 		},
 		{
 			name: "with custom description",
-			responsesSchema: map[int]SchemaValue{
+			responsesSchema: map[int]ContentValue{
 				400: {
-					Content:     "",
+					Content: Content{
+						"application/json": {Value: ""},
+					},
 					Description: "a description",
 				},
 			},
@@ -575,7 +616,7 @@ func TestResolveResponsesSchema(t *testing.T) {
 			if err == nil {
 				data, _ := operation.MarshalJSON()
 				jsonData := string(data)
-				require.JSONEq(t, test.expectedJSON, jsonData, "actual json data: ", jsonData)
+				require.JSONEq(t, test.expectedJSON, jsonData, "actual json data: %s", jsonData)
 				require.NoError(t, err)
 			}
 			require.Equal(t, test.expectedErr, err)
@@ -589,7 +630,7 @@ func TestResolveParametersSchema(t *testing.T) {
 	}
 	tests := []struct {
 		name         string
-		paramsSchema map[string]SchemaValue
+		paramsSchema ParameterValue
 		paramType    string
 		expectedErr  error
 		expectedJSON string
@@ -602,9 +643,11 @@ func TestResolveParametersSchema(t *testing.T) {
 		{
 			name:      "path param",
 			paramType: pathParamsType,
-			paramsSchema: map[string]SchemaValue{
+			paramsSchema: ParameterValue{
 				"foo": {
-					Content: "",
+					Schema: &Schema{
+						Value: "",
+					},
 				},
 			},
 			expectedJSON: `{
@@ -622,9 +665,11 @@ func TestResolveParametersSchema(t *testing.T) {
 		{
 			name:      "query param",
 			paramType: queryParamType,
-			paramsSchema: map[string]SchemaValue{
+			paramsSchema: ParameterValue{
 				"foo": {
-					Content: "",
+					Schema: &Schema{
+						Value: "",
+					},
 				},
 			},
 			expectedJSON: `{
@@ -641,9 +686,11 @@ func TestResolveParametersSchema(t *testing.T) {
 		{
 			name:      "cookie param",
 			paramType: cookieParamType,
-			paramsSchema: map[string]SchemaValue{
+			paramsSchema: ParameterValue{
 				"foo": {
-					Content: "",
+					Schema: &Schema{
+						Value: "",
+					},
 				},
 			},
 			expectedJSON: `{
@@ -660,9 +707,11 @@ func TestResolveParametersSchema(t *testing.T) {
 		{
 			name:      "header param",
 			paramType: headerParamType,
-			paramsSchema: map[string]SchemaValue{
+			paramsSchema: ParameterValue{
 				"foo": {
-					Content: "",
+					Schema: &Schema{
+						Value: "",
+					},
 				},
 			},
 			expectedJSON: `{
@@ -679,9 +728,11 @@ func TestResolveParametersSchema(t *testing.T) {
 		{
 			name:      "wrong param type",
 			paramType: "wrong",
-			paramsSchema: map[string]SchemaValue{
+			paramsSchema: ParameterValue{
 				"foo": {
-					Content: "",
+					Schema: &Schema{
+						Value: "",
+					},
 				},
 			},
 			expectedErr: fmt.Errorf("invalid param type"),
@@ -689,10 +740,13 @@ func TestResolveParametersSchema(t *testing.T) {
 		{
 			name:      "content param",
 			paramType: "query",
-			paramsSchema: map[string]SchemaValue{
+			paramsSchema: ParameterValue{
 				"foo": {
-					Content:     &TestStruct{},
-					ContentType: "application/json",
+					Content: Content{
+						"application/json": {
+							Value: &TestStruct{},
+						},
+					},
 				},
 			},
 			expectedJSON: `{
@@ -731,7 +785,7 @@ func TestResolveParametersSchema(t *testing.T) {
 			if err == nil {
 				data, _ := operation.MarshalJSON()
 				jsonData := string(data)
-				require.JSONEq(t, test.expectedJSON, jsonData, "actual json data: ", jsonData)
+				require.JSONEq(t, test.expectedJSON, jsonData, "actual json data: %s", jsonData)
 				require.NoError(t, err)
 			}
 			require.Equal(t, test.expectedErr, err)
