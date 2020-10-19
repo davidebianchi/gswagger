@@ -55,8 +55,6 @@ type SchemaValue struct {
 	Content     interface{}
 	Description string
 
-	// ContentType is to be used only with RequestBody. Valid ContentType
-	// are application/json or multipart/form-data.
 	ContentType               string
 	AllowAdditionalProperties bool
 }
@@ -227,7 +225,13 @@ func (r Router) resolveParameterSchema(paramType string, paramConfig map[string]
 				return err
 			}
 		}
-		param = param.WithSchema(schema)
+
+		if v.ContentType != "" {
+			param.Content = openapi3.NewContent()
+			param.Content[v.ContentType] = openapi3.NewMediaType().WithSchema(schema)
+		} else {
+			param = param.WithSchema(schema)
+		}
 
 		if v.Description != "" {
 			param = param.WithDescription(v.Description)

@@ -686,6 +686,34 @@ func TestResolveParametersSchema(t *testing.T) {
 			},
 			expectedErr: fmt.Errorf("invalid param type"),
 		},
+		{
+			name:      "content param",
+			paramType: "query",
+			paramsSchema: map[string]SchemaValue{
+				"foo": {
+					Content:     &TestStruct{},
+					ContentType: "application/json",
+				},
+			},
+			expectedJSON: `{
+				"parameters": [{
+					"in": "query",
+					"name": "foo",
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"message": {"type": "string"}
+								},
+								"additionalProperties": false
+							}
+						}
+					}
+				}],
+				"responses": null
+			}`,
+		},
 	}
 
 	mux := mux.NewRouter()
