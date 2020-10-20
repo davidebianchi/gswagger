@@ -32,20 +32,10 @@
           }
         ],
         "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {}
-            }
-          },
           "description": "request body without schema"
         },
         "responses": {
           "204": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
             "description": ""
           }
         }
