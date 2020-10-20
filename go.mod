@@ -1,4 +1,4 @@
-module github.com/davidebianchi/gorilla-swagger
+module github.com/davidebianchi/gswagger
 
 go 1.15
 
