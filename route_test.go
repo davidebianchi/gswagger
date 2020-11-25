@@ -306,10 +306,6 @@ func TestAddRoute(t *testing.T) {
 			})
 		})
 	}
-
-	t.Run("", func(t *testing.T) {
-
-	})
 }
 
 func TestResolveRequestBodySchema(t *testing.T) {
