@@ -36,8 +36,8 @@ type Options struct {
 	Openapi *openapi3.Swagger
 }
 
-// New generate new router with swagger. Default to OpenAPI 3.0.0
-func New(router *mux.Router, options Options) (*Router, error) {
+// NewRouter generate new router with swagger. Default to OpenAPI 3.0.0
+func NewRouter(router *mux.Router, options Options) (*Router, error) {
 	swagger, err := generateNewValidSwagger(options.Openapi)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrValidatingSwagger, err)

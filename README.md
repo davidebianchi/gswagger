@@ -15,7 +15,7 @@ An example usage of this lib:
 ```go
 context := context.Background()
 r := mux.NewRouter()
-router, _ := gswagger.New(r, gswagger.Options{
+router, _ := gswagger.NewRouter(r, gswagger.Options{
   Context: context,
   Openapi: &openapi3.Swagger{
     Info: &openapi3.Info{

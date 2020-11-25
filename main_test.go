@@ -27,14 +27,14 @@ func TestNewRouter(t *testing.T) {
 	}
 
 	t.Run("not ok - invalid Openapi option", func(t *testing.T) {
-		r, err := New(mRouter, Options{})
+		r, err := NewRouter(mRouter, Options{})
 
 		require.Nil(t, r)
 		require.EqualError(t, err, fmt.Sprintf("%s: swagger is required", ErrValidatingSwagger))
 	})
 
 	t.Run("ok - with default context", func(t *testing.T) {
-		r, err := New(mRouter, Options{
+		r, err := NewRouter(mRouter, Options{
 			Openapi: openapi,
 		})
 
@@ -49,7 +49,7 @@ func TestNewRouter(t *testing.T) {
 	t.Run("ok - with custom context", func(t *testing.T) {
 		type key struct{}
 		ctx := context.WithValue(context.Background(), key{}, "value")
-		r, err := New(mRouter, Options{
+		r, err := NewRouter(mRouter, Options{
 			Openapi: openapi,
 			Context: ctx,
 		})
@@ -132,7 +132,7 @@ func TestGenerateValidSwagger(t *testing.T) {
 func TestGenerateAndExposeSwagger(t *testing.T) {
 	t.Run("fails swagger validation", func(t *testing.T) {
 		mRouter := mux.NewRouter()
-		router, err := New(mRouter, Options{
+		router, err := NewRouter(mRouter, Options{
 			Openapi: &openapi3.Swagger{
 				Info: &openapi3.Info{
 					Title:   "title",
@@ -158,7 +158,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		swagger, err := openapi3.NewSwaggerLoader().LoadSwaggerFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
-		router, err := New(mRouter, Options{
+		router, err := NewRouter(mRouter, Options{
 			Openapi: swagger,
 		})
 
