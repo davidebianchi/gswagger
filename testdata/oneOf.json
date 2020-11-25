@@ -1,0 +1,56 @@
+{
+  "components": {},
+  "info": {
+    "title": "test swagger title",
+    "version": "test swagger version"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/user-profile": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "firstName": {
+                    "title": "user first name",
+                    "type": "string"
+                  },
+                  "lastName": {
+                    "title": "user last name",
+                    "type": "string"
+                  },
+                  "metadata": {
+                    "additionalProperties": true,
+                    "oneOf": [{
+                      "type": "string"
+                    }, {
+                      "type": "array"
+                    }],
+                    "title": "custom properties"
+                  }
+                },
+                "required": ["firstName", "lastName"],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    }
+  }
+}
