@@ -263,7 +263,7 @@ func TestAddRoute(t *testing.T) {
 			context := context.Background()
 			r := mux.NewRouter()
 
-			router, err := New(r, Options{
+			router, err := NewRouter(r, Options{
 				Context: context,
 				Openapi: getBaseSwagger(t),
 			})
@@ -458,7 +458,7 @@ func TestResolveRequestBodySchema(t *testing.T) {
 	}
 
 	mux := mux.NewRouter()
-	router, err := New(mux, Options{
+	router, err := NewRouter(mux, Options{
 		Openapi: getBaseSwagger(t),
 	})
 	require.NoError(t, err)
@@ -601,7 +601,7 @@ func TestResolveResponsesSchema(t *testing.T) {
 	}
 
 	mux := mux.NewRouter()
-	router, err := New(mux, Options{
+	router, err := NewRouter(mux, Options{
 		Openapi: getBaseSwagger(t),
 	})
 	require.NoError(t, err)
@@ -771,7 +771,7 @@ func TestResolveParametersSchema(t *testing.T) {
 	}
 
 	mux := mux.NewRouter()
-	router, err := New(mux, Options{
+	router, err := NewRouter(mux, Options{
 		Openapi: getBaseSwagger(t),
 	})
 	require.NoError(t, err)
