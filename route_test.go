@@ -38,6 +38,12 @@ func TestAddRoute(t *testing.T) {
 		ProfileImage string `json:"profileImage,omitempty" jsonschema_extras:"format=binary"`
 	}
 
+	type UserProfileRequest struct {
+		FirstName string      `json:"firstName" jsonschema:"title=user first name"`
+		LastName  string      `json:"lastName" jsonschema:"title=user last name"`
+		Metadata  interface{} `json:"metadata,omitempty" jsonschema:"title=custom properties,oneof_type=string;array"`
+	}
+
 	okHandler := func(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
@@ -256,6 +262,31 @@ func TestAddRoute(t *testing.T) {
 			testMethod:   http.MethodPost,
 			fixturesPath: "testdata/schema-no-content.json",
 		},
+		{
+			name: "oneOf support on properties",
+			routes: func(t *testing.T, router *Router) {
+				_, err := router.AddRoute(http.MethodPost, "/user-profile", okHandler, Definitions{
+					RequestBody: &ContentValue{
+						Content: Content{
+							"application/json": {
+								Value: &UserProfileRequest{},
+							},
+						},
+					},
+					Responses: map[int]ContentValue{
+						200: {
+							Content: Content{
+								"text/plain": {Value: ""},
+							},
+						},
+					},
+				})
+				require.NoError(t, err)
+			},
+			testPath:     "/user-profile",
+			testMethod:   http.MethodPost,
+			fixturesPath: "testdata/oneOf.json",
+		},
 	}
 
 	for _, test := range tests {
@@ -302,6 +333,7 @@ func TestAddRoute(t *testing.T) {
 				body := readBody(t, w.Result().Body)
 				actual, err := ioutil.ReadFile(test.fixturesPath)
 				require.NoError(t, err)
+				t.Logf("Received body ***\n%s\n***", body)
 				require.JSONEq(t, string(actual), body, "actual json data: %s", string(actual))
 			})
 		})
