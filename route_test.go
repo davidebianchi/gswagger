@@ -506,7 +506,7 @@ func TestResolveRequestBodySchema(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			operation := openapi3.NewOperation()
+			operation := NewOperation()
 
 			err := router.resolveRequestBodySchema(test.bodySchema, operation)
 
@@ -649,7 +649,7 @@ func TestResolveResponsesSchema(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			operation := openapi3.NewOperation()
+			operation := NewOperation()
 			operation.Responses = make(openapi3.Responses)
 
 			err := router.resolveResponsesSchema(test.responsesSchema, operation)
@@ -819,7 +819,7 @@ func TestResolveParametersSchema(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			operation := openapi3.NewOperation()
+			operation := NewOperation()
 
 			err := router.resolveParameterSchema(test.paramType, test.paramsSchema, operation)
 
