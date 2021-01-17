@@ -22,27 +22,25 @@ var (
 	ErrQuerystring = errors.New("errors generating querystring schema")
 )
 
-// Operation type
-type Operation struct {
-	*openapi3.Operation
-}
-
 // Handler is the http type handler
 type Handler func(w http.ResponseWriter, req *http.Request)
 
 // AddRawRoute add route to router with specific method, path and handler. Add the
 // router also to the swagger schema, after validating it
 func (r Router) AddRawRoute(method string, path string, handler Handler, operation Operation) (*mux.Route, error) {
-	if operation.Operation != nil {
+	op := operation.Operation
+	if op != nil {
 		err := operation.Validate(r.context)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		operation.Operation = openapi3.NewOperation()
-		operation.Responses = openapi3.NewResponses()
+		op = openapi3.NewOperation()
+		if op.Responses == nil {
+			op.Responses = openapi3.NewResponses()
+		}
 	}
-	r.swaggerSchema.AddOperation(path, method, operation.Operation)
+	r.swaggerSchema.AddOperation(path, method, op)
 
 	return r.router.HandleFunc(path, func(w http.ResponseWriter, req *http.Request) {
 		// Handle, when content-type is json, the request/response marshalling? Maybe with a specific option.
@@ -163,13 +161,12 @@ func (r Router) resolveRequestBodySchema(bodySchema *ContentValue, operation *op
 	if bodySchema == nil {
 		return nil
 	}
-	requestBody := openapi3.NewRequestBody()
-
 	content, err := r.addContentToOASSchema(bodySchema.Content)
 	if err != nil {
 		return err
 	}
-	requestBody = requestBody.WithContent(content)
+
+	requestBody := openapi3.NewRequestBody().WithContent(content)
 
 	if bodySchema.Description != "" {
 		requestBody.WithDescription(bodySchema.Description)

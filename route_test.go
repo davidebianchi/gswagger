@@ -273,21 +273,14 @@ func TestAddRoutes(t *testing.T) {
 					},
 				}
 
-				request := openapi3.NewRequestBody()
-				request.WithDescription("")
-				request.WithJSONSchema(schema)
+				request := openapi3.NewRequestBody().WithJSONSchema(schema)
+				response := openapi3.NewResponse().WithJSONSchema(schema)
 
-				response := openapi3.NewResponse()
-				response.WithDescription("")
-				response.WithJSONSchema(schema)
-
-				allOperation := openapi3.NewOperation()
-				allOperation.Responses = make(openapi3.Responses)
+				allOperation := NewOperation()
 				allOperation.AddResponse(200, response)
-				allOperation.RequestBody = &openapi3.RequestBodyRef{}
-				allOperation.RequestBody.Value = request
+				allOperation.AddRequestBody(request)
 
-				_, err := router.AddRawRoute(http.MethodPost, "/all-of", okHandler, Operation{allOperation})
+				_, err := router.AddRawRoute(http.MethodPost, "/all-of", okHandler, allOperation)
 				require.NoError(t, err)
 
 				nestedSchema := openapi3.NewSchema()
@@ -299,15 +292,11 @@ func TestAddRoutes(t *testing.T) {
 						Value: schema,
 					},
 				}
-				responseNested := openapi3.NewResponse()
-				responseNested.WithDescription("")
-				responseNested.WithJSONSchema(nestedSchema)
-
-				nestedAllOperation := openapi3.NewOperation()
-				nestedAllOperation.Responses = make(openapi3.Responses)
+				responseNested := openapi3.NewResponse().WithJSONSchema(nestedSchema)
+				nestedAllOperation := NewOperation()
 				nestedAllOperation.AddResponse(200, responseNested)
 
-				_, err = router.AddRawRoute(http.MethodGet, "/nested-schema", okHandler, Operation{nestedAllOperation})
+				_, err = router.AddRawRoute(http.MethodGet, "/nested-schema", okHandler, nestedAllOperation)
 				require.NoError(t, err)
 			},
 			fixturesPath: "testdata/allof.json",
