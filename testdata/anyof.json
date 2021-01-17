@@ -1,0 +1,91 @@
+{
+  "components": {},
+  "info": {
+    "title": "test swagger title",
+    "version": "test swagger version"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/any-of": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "maximum": 2,
+                    "minimum": 1,
+                    "type": "number"
+                  },
+                  {
+                    "maximum": 3,
+                    "minimum": 2,
+                    "type": "number"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "maximum": 2,
+                      "minimum": 1,
+                      "type": "number"
+                    },
+                    {
+                      "maximum": 3,
+                      "minimum": 2,
+                      "type": "number"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
+    "/nested-schema": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "foo": {
+                      "type": "string"
+                    },
+                    "nested": {
+                      "anyOf": [
+                        {
+                          "maximum": 2,
+                          "minimum": 1,
+                          "type": "number"
+                        },
+                        {
+                          "maximum": 3,
+                          "minimum": 2,
+                          "type": "number"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    }
+  }
+}
