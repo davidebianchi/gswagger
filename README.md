@@ -79,6 +79,9 @@ This configuration will output the schema shown [here](testdata/users_employees.
 1. How to add format `binary`?
 Formats `date-time`, `email`, `hostname`, `ipv4`, `ipv6`, `uri` could be added with tag `jsonschema`. Others format could be added with tag `jsonschema_extra`. Not all the formats are supported (see discovered unsupported formats [here](#discovered-unsupported-schema-features)).
 
+1. How to add a swagger with `allOf`?
+You can create manually a swagger with `allOf` using the `AddRawRoute` method.
+
 #### Discovered unsupported schema features
 
 *Formats*:

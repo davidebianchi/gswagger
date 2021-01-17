@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAddRoute(t *testing.T) {
+func TestAddRoutes(t *testing.T) {
 	type User struct {
 		Name        string   `json:"name" jsonschema:"title=The user name,required" jsonschema_extras:"example=Jane"`
 		PhoneNumber int      `json:"phone" jsonschema:"title=mobile number of user"`
@@ -256,6 +256,51 @@ func TestAddRoute(t *testing.T) {
 			testMethod:   http.MethodPost,
 			fixturesPath: "testdata/schema-no-content.json",
 		},
+		{
+			name: "allOf schema",
+			routes: func(t *testing.T, router *Router) {
+				schema := openapi3.NewAllOfSchema()
+				schema.AllOf = []*openapi3.SchemaRef{
+					{
+						Value: openapi3.NewFloat64Schema().
+							WithMin(1).
+							WithMax(2),
+					},
+					{
+						Value: openapi3.NewFloat64Schema().
+							WithMin(2).
+							WithMax(3),
+					},
+				}
+
+				request := openapi3.NewRequestBody().WithJSONSchema(schema)
+				response := openapi3.NewResponse().WithJSONSchema(schema)
+
+				allOperation := NewOperation()
+				allOperation.AddResponse(200, response)
+				allOperation.AddRequestBody(request)
+
+				_, err := router.AddRawRoute(http.MethodPost, "/all-of", okHandler, allOperation)
+				require.NoError(t, err)
+
+				nestedSchema := openapi3.NewSchema()
+				nestedSchema.Properties = map[string]*openapi3.SchemaRef{
+					"foo": {
+						Value: openapi3.NewStringSchema(),
+					},
+					"nested": {
+						Value: schema,
+					},
+				}
+				responseNested := openapi3.NewResponse().WithJSONSchema(nestedSchema)
+				nestedAllOperation := NewOperation()
+				nestedAllOperation.AddResponse(200, responseNested)
+
+				_, err = router.AddRawRoute(http.MethodGet, "/nested-schema", okHandler, nestedAllOperation)
+				require.NoError(t, err)
+			},
+			fixturesPath: "testdata/allof.json",
+		},
 	}
 
 	for _, test := range tests {
@@ -300,16 +345,12 @@ func TestAddRoute(t *testing.T) {
 				require.Equal(t, http.StatusOK, w.Result().StatusCode)
 
 				body := readBody(t, w.Result().Body)
-				actual, err := ioutil.ReadFile(test.fixturesPath)
+				expected, err := ioutil.ReadFile(test.fixturesPath)
 				require.NoError(t, err)
-				require.JSONEq(t, string(actual), body, "actual json data: %s", string(actual))
+				require.JSONEq(t, string(expected), body, "actual json data: %s", body)
 			})
 		})
 	}
-
-	t.Run("", func(t *testing.T) {
-
-	})
 }
 
 func TestResolveRequestBodySchema(t *testing.T) {
@@ -465,7 +506,7 @@ func TestResolveRequestBodySchema(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			operation := openapi3.NewOperation()
+			operation := NewOperation()
 
 			err := router.resolveRequestBodySchema(test.bodySchema, operation)
 
@@ -608,7 +649,7 @@ func TestResolveResponsesSchema(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			operation := openapi3.NewOperation()
+			operation := NewOperation()
 			operation.Responses = make(openapi3.Responses)
 
 			err := router.resolveResponsesSchema(test.responsesSchema, operation)
@@ -778,7 +819,7 @@ func TestResolveParametersSchema(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			operation := openapi3.NewOperation()
+			operation := NewOperation()
 
 			err := router.resolveParameterSchema(test.paramType, test.paramsSchema, operation)
 
