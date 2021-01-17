@@ -15,7 +15,7 @@ An example usage of this lib:
 ```go
 context := context.Background()
 r := mux.NewRouter()
-router, _ := gswagger.NewRouter(r, gswagger.Options{
+router, _ := swagger.NewRouter(r, gswagger.Options{
   Context: context,
   Openapi: &openapi3.Swagger{
     Info: &openapi3.Info{
@@ -61,15 +61,15 @@ router.AddRoute(http.MethodGet, "/users", okHandler, Definitions{
   },
 })
 
-router.AddRoute(http.MethodGet, "/employees", okHandler, Definitions{
-  Responses: map[int]ContentValue{
-    200: {
-      Content: Content{
-        "application/json": {Value: &Employees{}},
-      },
-    },
-  },
+carSchema := openapi3.NewObjectSchema().WithProperties(map[string]*openapi3.Schema{
+  "foo": openapi3.NewStringSchema(),
+  "bar": openapi3.NewIntegerSchema().WithMax(15).WithMin(5),
 })
+operation := swagger.NewOperation()
+openapi3.NewRequestBody().WithJSONSchema(carSchema)
+operation.AddRequestBody(requestBody)
+
+router.AddRawRoute(http.MethodPost, "/cars", okHandler, operation)
 ```
 
 This configuration will output the schema shown [here](testdata/users_employees.json)
