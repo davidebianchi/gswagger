@@ -24,7 +24,7 @@ func (o *Operation) AddRequestBody(requestBody *openapi3.RequestBody) {
 }
 
 // AddResponse add response to operation. It check if the description is present
-// (otherwise default to empty string). This avoid to add the default response,
+// (otherwise default to empty string). This method does not add the default response,
 // but it is always possible to add it manually.
 func (o *Operation) AddResponse(status int, response *openapi3.Response) {
 	if o.Responses == nil {
