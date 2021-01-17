@@ -13,7 +13,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const jsonType = "application/json"
+const formDataType = "multipart/form-data"
+
 func TestAddRoutes(t *testing.T) {
+
 	type User struct {
 		Name        string   `json:"name" jsonschema:"title=The user name,required" jsonschema_extras:"example=Jane"`
 		PhoneNumber int      `json:"phone" jsonschema:"title=mobile number of user"`
@@ -71,7 +75,7 @@ func TestAddRoutes(t *testing.T) {
 				_, err := router.AddRoute(http.MethodPost, "/users", okHandler, Definitions{
 					RequestBody: &ContentValue{
 						Content: Content{
-							"application/json": {Value: User{}},
+							jsonType: {Value: User{}},
 						},
 					},
 					Responses: map[int]ContentValue{
@@ -82,7 +86,7 @@ func TestAddRoutes(t *testing.T) {
 						},
 						401: {
 							Content: Content{
-								"application/json": {Value: &errorResponse{}},
+								jsonType: {Value: &errorResponse{}},
 							},
 							Description: "invalid request",
 						},
@@ -94,7 +98,7 @@ func TestAddRoutes(t *testing.T) {
 					Responses: map[int]ContentValue{
 						200: {
 							Content: Content{
-								"application/json": {Value: &Users{}},
+								jsonType: {Value: &Users{}},
 							},
 						},
 					},
@@ -105,7 +109,7 @@ func TestAddRoutes(t *testing.T) {
 					Responses: map[int]ContentValue{
 						200: {
 							Content: Content{
-								"application/json": {Value: &Employees{}},
+								jsonType: {Value: &Employees{}},
 							},
 						},
 					},
@@ -121,7 +125,7 @@ func TestAddRoutes(t *testing.T) {
 				_, err := router.AddRoute(http.MethodPost, "/files", okHandler, Definitions{
 					RequestBody: &ContentValue{
 						Content: Content{
-							"multipart/form-data": {
+							formDataType: {
 								Value:                     &FormData{},
 								AllowAdditionalProperties: true,
 							},
@@ -131,7 +135,7 @@ func TestAddRoutes(t *testing.T) {
 					Responses: map[int]ContentValue{
 						200: {
 							Content: Content{
-								"application/json": {
+								jsonType: {
 									Value: "",
 								},
 							},
@@ -417,7 +421,7 @@ func TestResolveRequestBodySchema(t *testing.T) {
 			expectedErr: nil,
 			bodySchema: &ContentValue{
 				Content: Content{
-					"multipart/form-data": {
+					formDataType: {
 						Value: &TestStruct{},
 					},
 				},
@@ -444,7 +448,7 @@ func TestResolveRequestBodySchema(t *testing.T) {
 			expectedErr: nil,
 			bodySchema: &ContentValue{
 				Content: Content{
-					"application/json": {Value: &TestStruct{}},
+					jsonType: {Value: &TestStruct{}},
 				},
 			},
 			expectedJSON: `{
@@ -469,7 +473,7 @@ func TestResolveRequestBodySchema(t *testing.T) {
 			expectedErr: nil,
 			bodySchema: &ContentValue{
 				Content: Content{
-					"application/json": {
+					jsonType: {
 						Value: &TestStruct{},
 					},
 				},
@@ -585,7 +589,7 @@ func TestResolveResponsesSchema(t *testing.T) {
 			responsesSchema: map[int]ContentValue{
 				200: {
 					Content: Content{
-						"application/json": {Value: &TestStruct{}},
+						jsonType: {Value: &TestStruct{}},
 					},
 				},
 			},
@@ -616,12 +620,12 @@ func TestResolveResponsesSchema(t *testing.T) {
 			responsesSchema: map[int]ContentValue{
 				200: {
 					Content: Content{
-						"application/json": {Value: &TestStruct{}},
+						jsonType: {Value: &TestStruct{}},
 					},
 				},
 				400: {
 					Content: Content{
-						"application/json": {Value: ""},
+						jsonType: {Value: ""},
 					},
 				},
 			},
@@ -662,7 +666,7 @@ func TestResolveResponsesSchema(t *testing.T) {
 			responsesSchema: map[int]ContentValue{
 				400: {
 					Content: Content{
-						"application/json": {Value: ""},
+						jsonType: {Value: ""},
 					},
 					Description: "a description",
 				},
@@ -828,7 +832,7 @@ func TestResolveParametersSchema(t *testing.T) {
 			paramsSchema: ParameterValue{
 				"foo": {
 					Content: Content{
-						"application/json": {
+						jsonType: {
 							Value: &TestStruct{},
 						},
 					},
