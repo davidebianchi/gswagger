@@ -257,7 +257,7 @@ func TestAddRoutes(t *testing.T) {
 			fixturesPath: "testdata/schema-no-content.json",
 		},
 		{
-			name: "allOf schema at first level",
+			name: "allOf schema",
 			routes: func(t *testing.T, router *Router) {
 				schema := openapi3.NewAllOfSchema()
 				schema.AllOf = []*openapi3.SchemaRef{
