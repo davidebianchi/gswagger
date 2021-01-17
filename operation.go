@@ -9,7 +9,7 @@ type Operation struct {
 	*openapi3.Operation
 }
 
-// NewOperation returns a swagger operation.
+// NewOperation returns an OpenApi operation.
 func NewOperation() Operation {
 	return Operation{
 		openapi3.NewOperation(),
