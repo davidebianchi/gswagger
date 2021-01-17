@@ -293,13 +293,57 @@ func TestAddRoutes(t *testing.T) {
 					},
 				}
 				responseNested := openapi3.NewResponse().WithJSONSchema(nestedSchema)
-				nestedAllOperation := NewOperation()
-				nestedAllOperation.AddResponse(200, responseNested)
+				nestedAllOfOperation := NewOperation()
+				nestedAllOfOperation.AddResponse(200, responseNested)
 
-				_, err = router.AddRawRoute(http.MethodGet, "/nested-schema", okHandler, nestedAllOperation)
+				_, err = router.AddRawRoute(http.MethodGet, "/nested-schema", okHandler, nestedAllOfOperation)
 				require.NoError(t, err)
 			},
 			fixturesPath: "testdata/allof.json",
+		},
+		{
+			name: "anyOf schema",
+			routes: func(t *testing.T, router *Router) {
+				schema := openapi3.NewAnyOfSchema()
+				schema.AnyOf = []*openapi3.SchemaRef{
+					{
+						Value: openapi3.NewFloat64Schema().
+							WithMin(1).
+							WithMax(2),
+					},
+					{
+						Value: openapi3.NewFloat64Schema().
+							WithMin(2).
+							WithMax(3),
+					},
+				}
+				request := openapi3.NewRequestBody().WithJSONSchema(schema)
+				response := openapi3.NewResponse().WithJSONSchema(schema)
+
+				allOperation := NewOperation()
+				allOperation.AddResponse(200, response)
+				allOperation.AddRequestBody(request)
+
+				_, err := router.AddRawRoute(http.MethodPost, "/any-of", okHandler, allOperation)
+				require.NoError(t, err)
+
+				nestedSchema := openapi3.NewSchema()
+				nestedSchema.Properties = map[string]*openapi3.SchemaRef{
+					"foo": {
+						Value: openapi3.NewStringSchema(),
+					},
+					"nested": {
+						Value: schema,
+					},
+				}
+				responseNested := openapi3.NewResponse().WithJSONSchema(nestedSchema)
+				nestedAnyOfOperation := NewOperation()
+				nestedAnyOfOperation.AddResponse(200, responseNested)
+
+				_, err = router.AddRawRoute(http.MethodGet, "/nested-schema", okHandler, nestedAnyOfOperation)
+				require.NoError(t, err)
+			},
+			fixturesPath: "testdata/anyof.json",
 		},
 	}
 

@@ -82,6 +82,9 @@ Formats `date-time`, `email`, `hostname`, `ipv4`, `ipv6`, `uri` could be added w
 1. How to add a swagger with `allOf`?
 You can create manually a swagger with `allOf` using the `AddRawRoute` method.
 
+1. How to add a swagger with `anyOf`?
+You can create manually a swagger with `anyOf` using the `AddRawRoute` method.
+
 #### Discovered unsupported schema features
 
 *Formats*:
