@@ -177,4 +177,30 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		require.NoError(t, err)
 		require.JSONEq(t, string(actual), body)
 	})
+
+	t.Run("correctly expose yaml documentation from loaded swagger file", func(t *testing.T) {
+		mRouter := mux.NewRouter()
+
+		swagger, err := openapi3.NewSwaggerLoader().LoadSwaggerFromFile("testdata/users_employees.json")
+		require.NoError(t, err)
+
+		router, err := NewRouter(mRouter, Options{
+			Openapi: swagger,
+		})
+
+		err = router.GenerateAndExposeSwagger()
+		require.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, YAMLDocumentationPath, nil)
+		mRouter.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusOK, w.Result().StatusCode)
+		require.True(t, strings.Contains(w.Result().Header.Get("content-type"), "text/plain"))
+
+		body := readBody(t, w.Result().Body)
+		expected, err := ioutil.ReadFile("testdata/users_employees.yaml")
+		require.NoError(t, err)
+		require.YAMLEq(t, string(expected), body, string(body))
+	})
 }
