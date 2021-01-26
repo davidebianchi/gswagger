@@ -386,7 +386,7 @@ func TestAddRoutes(t *testing.T) {
 
 			t.Run("and generate swagger documentation in json", func(t *testing.T) {
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest(http.MethodGet, JSONDocumentationPath, nil)
+				req := httptest.NewRequest(http.MethodGet, DefaultJSONDocumentationPath, nil)
 
 				r.ServeHTTP(w, req)
 

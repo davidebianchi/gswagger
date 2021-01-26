@@ -34,7 +34,7 @@ func TestIntegration(t *testing.T) {
 
 		t.Run("and generate swagger", func(t *testing.T) {
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, JSONDocumentationPath, nil)
+			r := httptest.NewRequest(http.MethodGet, DefaultJSONDocumentationPath, nil)
 
 			muxRouter.ServeHTTP(w, r)
 
