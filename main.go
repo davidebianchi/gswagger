@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/ghodss/yaml"
 	"github.com/gorilla/mux"
 )
 
@@ -20,6 +21,8 @@ var (
 const (
 	// JSONDocumentationPath is the path of the swagger documentation in json format.
 	JSONDocumentationPath = "/documentation/json"
+	// YAMLDocumentationPath is the path of the swagger documentation in yaml format.
+	YAMLDocumentationPath = "/documentation/yaml"
 	defaultOpenapiVersion = "3.0.0"
 )
 
@@ -88,14 +91,23 @@ func (r Router) GenerateAndExposeSwagger() error {
 
 	jsonSwagger, err := r.swaggerSchema.MarshalJSON()
 	if err != nil {
-		return fmt.Errorf("%w: %s", ErrGenerateSwagger, err)
+		return fmt.Errorf("%w json marshal: %s", ErrGenerateSwagger, err)
 	}
 	r.router.HandleFunc(JSONDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(jsonSwagger)
-	})
-	// TODO: add yaml endpoint
+	}).Methods(http.MethodGet)
+
+	yamlSwagger, err := yaml.JSONToYAML(jsonSwagger)
+	if err != nil {
+		return fmt.Errorf("%w yaml marshal: %s", ErrGenerateSwagger, err)
+	}
+	r.router.HandleFunc(YAMLDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusOK)
+		w.Write(yamlSwagger)
+	}).Methods(http.MethodGet)
 
 	return nil
 }
