@@ -1,12 +1,21 @@
-## gorilla swagger
+<div align="center">
+  
+[![Build Status][github-actions-svg]][github-actions]
+[![Go Report Card][go-report-card]][go-report-card-link]
+[![GoDoc][godoc-svg]][godoc-link]
 
-Initial test&try to generate a swagger dynamically.
+</div>
 
-It uses [gorilla-mux](https://github.com/gorilla/mux) and [kin-openapi](https://github.com/getkin/kin-openapi)
+# Gorilla Swagger
+
+Generate a swagger dynamically based on the types used to handle request and response.
+
+It works with [gorilla-mux](https://github.com/gorilla/mux) and uses [kin-openapi]
 to automatically generate and serve a swagger file.
 
-To convert struct to schemas, we use [this library](https://github.com/alecthomas/jsonschema).
-The struct should contains the appropriate struct tags to be inserted in json schema.
+To convert struct to schemas, we use [jsonschema] library.  
+The struct must contains the appropriate struct tags to be inserted in json schema to generate the schema dynamically.  
+It is always possible to add a totally custom swagger schema using [kin-openapi]
 
 ## Usage
 
@@ -65,8 +74,8 @@ carSchema := openapi3.NewObjectSchema().WithProperties(map[string]*openapi3.Sche
   "foo": openapi3.NewStringSchema(),
   "bar": openapi3.NewIntegerSchema().WithMax(15).WithMin(5),
 })
+requestBody := openapi3.NewRequestBody().WithJSONSchema(carSchema)
 operation := swagger.NewOperation()
-openapi3.NewRequestBody().WithJSONSchema(carSchema)
 operation.AddRequestBody(requestBody)
 
 router.AddRawRoute(http.MethodPost, "/cars", okHandler, operation)
@@ -85,8 +94,26 @@ You can create manually a swagger with `allOf` using the `AddRawRoute` method.
 1. How to add a swagger with `anyOf`?
 You can create manually a swagger with `anyOf` using the `AddRawRoute` method.
 
+1. How to add a swagger with `oneOf`?
+You can create manually a swagger with `oneOf` using the `AddRawRoute` method, or use the [jsonschema] struct tag.
+
 #### Discovered unsupported schema features
 
 *Formats*:
 
-* `uuid` is unsupported by kin-openapi
+* `uuid` is unsupported by [kin-openapi]
+
+## Versioning
+
+We use [SemVer][semver] for versioning. For the versions available,
+see the [tags on this repository](https://github.com/davidebianchi/gswagger/tags).
+
+<!-- Reference -->
+[kin-openapi]: https://github.com/getkin/kin-openapi
+[jsonschema]: https://github.com/alecthomas/jsonschema
+[github-actions]: https://github.com/davidebianchi/gswagger/actions
+[github-actions-svg]: https://github.com/davidebianchi/gswagger/workflows/Test%20and%20build/badge.svg
+[godoc-svg]: https://godoc.org/github.com/davidebianchi/gswagger?status.svg
+[godoc-link]: https://godoc.org/github.com/davidebianchi/gswagger
+[go-report-card]: https://goreportcard.com/badge/github.com/davidebianchi/gswagger
+[go-report-card-link]: https://goreportcard.com/report/github.com/davidebianchi/gswagger
