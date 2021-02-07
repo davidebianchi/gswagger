@@ -6,6 +6,53 @@
   },
   "openapi": "3.0.0",
   "paths": {
+    "/one-of": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "maximum": 2,
+                    "minimum": 1,
+                    "type": "number"
+                  },
+                  {
+                    "maximum": 3,
+                    "minimum": 2,
+                    "type": "number"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "maximum": 2,
+                      "minimum": 1,
+                      "type": "number"
+                    },
+                    {
+                      "maximum": 3,
+                      "minimum": 2,
+                      "type": "number"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
     "/user-profile": {
       "post": {
         "requestBody": {
@@ -24,15 +71,21 @@
                   },
                   "metadata": {
                     "additionalProperties": true,
-                    "oneOf": [{
-                      "type": "string"
-                    }, {
-                      "type": "array"
-                    }],
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
                     "title": "custom properties"
                   }
                 },
-                "required": ["firstName", "lastName"],
+                "required": [
+                  "firstName",
+                  "lastName"
+                ],
                 "type": "object"
               }
             }
