@@ -42,6 +42,12 @@ func TestAddRoutes(t *testing.T) {
 		ProfileImage string `json:"profileImage,omitempty" jsonschema_extras:"format=binary"`
 	}
 
+	type UserProfileRequest struct {
+		FirstName string      `json:"firstName" jsonschema:"title=user first name"`
+		LastName  string      `json:"lastName" jsonschema:"title=user last name"`
+		Metadata  interface{} `json:"metadata,omitempty" jsonschema:"title=custom properties,oneof_type=string;number"`
+	}
+
 	okHandler := func(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
@@ -348,6 +354,54 @@ func TestAddRoutes(t *testing.T) {
 				require.NoError(t, err)
 			},
 			fixturesPath: "testdata/anyof.json",
+		},
+		{
+			name: "oneOf support on properties",
+			routes: func(t *testing.T, router *Router) {
+				_, err := router.AddRoute(http.MethodPost, "/user-profile", okHandler, Definitions{
+					RequestBody: &ContentValue{
+						Content: Content{
+							"application/json": {
+								Value: &UserProfileRequest{},
+							},
+						},
+					},
+					Responses: map[int]ContentValue{
+						200: {
+							Content: Content{
+								"text/plain": {Value: ""},
+							},
+						},
+					},
+				})
+				require.NoError(t, err)
+
+				schema := openapi3.NewOneOfSchema()
+				schema.OneOf = []*openapi3.SchemaRef{
+					{
+						Value: openapi3.NewFloat64Schema().
+							WithMin(1).
+							WithMax(2),
+					},
+					{
+						Value: openapi3.NewFloat64Schema().
+							WithMin(2).
+							WithMax(3),
+					},
+				}
+				request := openapi3.NewRequestBody().WithJSONSchema(schema)
+				response := openapi3.NewResponse().WithJSONSchema(schema)
+
+				allOperation := NewOperation()
+				allOperation.AddResponse(200, response)
+				allOperation.AddRequestBody(request)
+
+				_, err = router.AddRawRoute(http.MethodPost, "/one-of", okHandler, allOperation)
+				require.NoError(t, err)
+			},
+			testPath:     "/user-profile",
+			testMethod:   http.MethodPost,
+			fixturesPath: "testdata/oneOf.json",
 		},
 	}
 
