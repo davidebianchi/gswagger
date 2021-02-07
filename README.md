@@ -1,12 +1,12 @@
 <div align="center">
   
+# Gorilla Swagger
+  
 [![Build Status][github-actions-svg]][github-actions]
 [![Go Report Card][go-report-card]][go-report-card-link]
 [![GoDoc][godoc-svg]][godoc-link]
 
 </div>
-
-# Gorilla Swagger
 
 Generate a swagger dynamically based on the types used to handle request and response.
 
