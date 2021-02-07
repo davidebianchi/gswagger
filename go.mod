@@ -10,5 +10,5 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 )
