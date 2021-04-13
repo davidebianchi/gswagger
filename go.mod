@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/alecthomas/jsonschema v0.0.0-20210203201211-9145459e837c
-	github.com/getkin/kin-openapi v0.53.0
+	github.com/getkin/kin-openapi v0.54.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-openapi/swag v0.19.14 // indirect
 	github.com/gorilla/mux v1.8.0
