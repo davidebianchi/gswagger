@@ -21,7 +21,7 @@ func TestNewRouter(t *testing.T) {
 		Title:   "my title",
 		Version: "my version",
 	}
-	openapi := &openapi3.Swagger{
+	openapi := &openapi3.T{
 		Info:  info,
 		Paths: openapi3.Paths{},
 	}
@@ -117,7 +117,7 @@ func TestNewRouter(t *testing.T) {
 
 func TestGenerateValidSwagger(t *testing.T) {
 	t.Run("not ok - empty swagger info", func(t *testing.T) {
-		swagger := &openapi3.Swagger{}
+		swagger := &openapi3.T{}
 
 		swagger, err := generateNewValidSwagger(swagger)
 		require.Nil(t, swagger)
@@ -125,7 +125,7 @@ func TestGenerateValidSwagger(t *testing.T) {
 	})
 
 	t.Run("not ok - empty info title", func(t *testing.T) {
-		swagger := &openapi3.Swagger{
+		swagger := &openapi3.T{
 			Info: &openapi3.Info{},
 		}
 
@@ -135,7 +135,7 @@ func TestGenerateValidSwagger(t *testing.T) {
 	})
 
 	t.Run("not ok - empty info version", func(t *testing.T) {
-		swagger := &openapi3.Swagger{
+		swagger := &openapi3.T{
 			Info: &openapi3.Info{
 				Title: "title",
 			},
@@ -147,7 +147,7 @@ func TestGenerateValidSwagger(t *testing.T) {
 	})
 
 	t.Run("ok - custom swagger", func(t *testing.T) {
-		swagger := &openapi3.Swagger{
+		swagger := &openapi3.T{
 			Info: &openapi3.Info{},
 		}
 
@@ -167,13 +167,13 @@ func TestGenerateValidSwagger(t *testing.T) {
 			Title:   "my title",
 			Version: "my version",
 		}
-		swagger := &openapi3.Swagger{
+		swagger := &openapi3.T{
 			Info: info,
 		}
 
 		swagger, err := generateNewValidSwagger(swagger)
 		require.NoError(t, err)
-		require.Equal(t, &openapi3.Swagger{
+		require.Equal(t, &openapi3.T{
 			OpenAPI: defaultOpenapiVersion,
 			Info:    info,
 			Paths:   openapi3.Paths{},
@@ -185,7 +185,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 	t.Run("fails swagger validation", func(t *testing.T) {
 		mRouter := mux.NewRouter()
 		router, err := NewRouter(mRouter, Options{
-			Openapi: &openapi3.Swagger{
+			Openapi: &openapi3.T{
 				Info: &openapi3.Info{
 					Title:   "title",
 					Version: "version",
@@ -207,7 +207,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 	t.Run("correctly expose json documentation from loaded swagger file", func(t *testing.T) {
 		mRouter := mux.NewRouter()
 
-		swagger, err := openapi3.NewSwaggerLoader().LoadSwaggerFromFile("testdata/users_employees.json")
+		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
 		router, err := NewRouter(mRouter, Options{
@@ -233,7 +233,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 	t.Run("correctly expose json documentation from loaded swagger file - custom path", func(t *testing.T) {
 		mRouter := mux.NewRouter()
 
-		swagger, err := openapi3.NewSwaggerLoader().LoadSwaggerFromFile("testdata/users_employees.json")
+		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
 		router, err := NewRouter(mRouter, Options{
@@ -260,7 +260,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 	t.Run("correctly expose yaml documentation from loaded swagger file", func(t *testing.T) {
 		mRouter := mux.NewRouter()
 
-		swagger, err := openapi3.NewSwaggerLoader().LoadSwaggerFromFile("testdata/users_employees.json")
+		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
 		router, err := NewRouter(mRouter, Options{
@@ -286,7 +286,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 	t.Run("correctly expose yaml documentation from loaded swagger file - custom path", func(t *testing.T) {
 		mRouter := mux.NewRouter()
 
-		swagger, err := openapi3.NewSwaggerLoader().LoadSwaggerFromFile("testdata/users_employees.json")
+		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
 		router, err := NewRouter(mRouter, Options{

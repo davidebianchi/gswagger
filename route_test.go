@@ -936,10 +936,10 @@ func TestResolveParametersSchema(t *testing.T) {
 	}
 }
 
-func getBaseSwagger(t *testing.T) *openapi3.Swagger {
+func getBaseSwagger(t *testing.T) *openapi3.T {
 	t.Helper()
 
-	return &openapi3.Swagger{
+	return &openapi3.T{
 		Info: &openapi3.Info{
 			Title:   swaggerOpenapiTitle,
 			Version: swaggerOpenapiVersion,
