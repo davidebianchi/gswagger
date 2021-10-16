@@ -10,8 +10,13 @@
 
 Generate a swagger dynamically based on the types used to handle request and response.
 
-It works with [gorilla-mux](https://github.com/gorilla/mux) and uses [kin-openapi]
-to automatically generate and serve a swagger file.
+It works with any router which support handler net/http HandlerFunc compatible.
+
+The router supported out of the box are:
+
+- [gorilla-mux](https://github.com/gorilla/mux)
+
+This lib uses [kin-openapi]to automatically generate and serve a swagger file.
 
 To convert struct to schemas, we use [jsonschema] library.  
 The struct must contains the appropriate struct tags to be inserted in json schema to generate the schema dynamically.  
@@ -19,16 +24,17 @@ It is always possible to add a totally custom swagger schema using [kin-openapi]
 
 ## Usage
 
-An example usage of this lib:
+An example usage of this lib with gorilla mux:
 
 ```go
 context := context.Background()
-r := mux.NewRouter()
-router, _ := swagger.NewRouter(r, gswagger.Options{
+muxRouter := mux.NewRouter()
+
+router, err := swagger.NewRouter(apirouter.NewGorillaMuxRouter(muxRouter), swagger.Options{
   Context: context,
-  Openapi: &openapi3.Swagger{
+  Openapi: &openapi3.T{
     Info: &openapi3.Info{
-      Title:   "my swagger title",
+      Title:   "my title",
       Version: "1.0.0",
     },
   },
@@ -39,20 +45,31 @@ okHandler := func(w http.ResponseWriter, req *http.Request) {
   w.Write([]byte("OK"))
 }
 
-router.AddRoute(http.MethodPost, "/users", okHandler, Definitions{
-  RequestBody: &gswagger.ContentValue{
-    Content: gswagger.Content{
+type User struct {
+  Name        string   `json:"name" jsonschema:"title=The user name,required" jsonschema_extras:"example=Jane"`
+  PhoneNumber int      `json:"phone" jsonschema:"title=mobile number of user"`
+  Groups      []string `json:"groups,omitempty" jsonschema:"title=groups of the user,default=users"`
+  Address     string   `json:"address" jsonschema:"title=user address"`
+}
+type Users []User
+type errorResponse struct {
+  Message string `json:"message"`
+}
+
+router.AddRoute(http.MethodPost, "/users", okHandler, swagger.Definitions{
+  RequestBody: &swagger.ContentValue{
+    Content: swagger.Content{
       "application/json": {Value: User{}},
     },
   },
-  Responses: map[int]gswagger.ContentValue{
+  Responses: map[int]swagger.ContentValue{
     201: {
-      Content: gswagger.Content{
+      Content: swagger.Content{
         "text/html": {Value: ""},
       },
     },
     401: {
-      Content: gswagger.Content{
+      Content: swagger.Content{
         "application/json": {Value: &errorResponse{}},
       },
       Description: "invalid request",
@@ -60,11 +77,11 @@ router.AddRoute(http.MethodPost, "/users", okHandler, Definitions{
   },
 })
 
-router.AddRoute(http.MethodGet, "/users", okHandler, Definitions{
-  Responses: map[int]ContentValue{
+router.AddRoute(http.MethodGet, "/users", okHandler, swagger.Definitions{
+  Responses: map[int]swagger.ContentValue{
     200: {
-      Content: Content{
-        "application/json": {Value: &Users{}},
+      Content: swagger.Content{
+        "application/json": {Value: &[]User{}},
       },
     },
   },
@@ -101,7 +118,7 @@ You can create manually a swagger with `oneOf` using the `AddRawRoute` method, o
 
 *Formats*:
 
-* `uuid` is unsupported by [kin-openapi]
+- `uuid` is unsupported by [kin-openapi]
 
 ## Versioning
 

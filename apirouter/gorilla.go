@@ -6,7 +6,7 @@ type gorillaRouter struct {
 	router *mux.Router
 }
 
-func (r gorillaRouter) AddRoute(path string, method string, handler Handler) Route {
+func (r gorillaRouter) AddRoute(path string, method string, handler HandlerFunc) Route {
 	return r.router.HandleFunc(path, handler).Methods(method)
 }
 

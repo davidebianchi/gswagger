@@ -23,7 +23,7 @@ var (
 
 // AddRawRoute add route to router with specific method, path and handler. Add the
 // router also to the swagger schema, after validating it
-func (r Router) AddRawRoute(method string, path string, handler apirouter.Handler, operation Operation) (interface{}, error) {
+func (r Router) AddRawRoute(method string, path string, handler apirouter.HandlerFunc, operation Operation) (interface{}, error) {
 	op := operation.Operation
 	if op != nil {
 		err := operation.Validate(r.context)
@@ -84,7 +84,7 @@ const (
 )
 
 // AddRoute add a route with json schema inferted by passed schema.
-func (r Router) AddRoute(method string, path string, handler apirouter.Handler, schema Definitions) (interface{}, error) {
+func (r Router) AddRoute(method string, path string, handler apirouter.HandlerFunc, schema Definitions) (interface{}, error) {
 	operation := NewOperation()
 	operation.Responses = make(openapi3.Responses)
 

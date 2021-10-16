@@ -1,4 +1,4 @@
-package swagger
+package swagger_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	swagger "github.com/davidebianchi/gswagger"
 	"github.com/davidebianchi/gswagger/apirouter"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gorilla/mux"
@@ -15,8 +16,8 @@ import (
 )
 
 const (
-	swaggerOpenapiTitle   = "test swagger title"
-	swaggerOpenapiVersion = "test swagger version"
+	swaggerOpenapiTitle   = "test title"
+	swaggerOpenapiVersion = "test version"
 )
 
 func TestIntegration(t *testing.T) {
@@ -35,7 +36,7 @@ func TestIntegration(t *testing.T) {
 
 		t.Run("and generate swagger", func(t *testing.T) {
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, DefaultJSONDocumentationPath, nil)
+			r := httptest.NewRequest(http.MethodGet, swagger.DefaultJSONDocumentationPath, nil)
 
 			muxRouter.ServeHTTP(w, r)
 
@@ -62,7 +63,7 @@ func setupSwagger(t *testing.T) *mux.Router {
 	context := context.Background()
 	muxRouter := mux.NewRouter()
 
-	router, err := NewRouter(apirouter.NewGorillaMuxRouter(muxRouter), Options{
+	router, err := swagger.NewRouter(apirouter.NewGorillaMuxRouter(muxRouter), swagger.Options{
 		Context: context,
 		Openapi: &openapi3.T{
 			Info: &openapi3.Info{
@@ -77,7 +78,7 @@ func setupSwagger(t *testing.T) *mux.Router {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`OK`))
 	}
-	operation := Operation{}
+	operation := swagger.Operation{}
 
 	_, err = router.AddRawRoute(http.MethodGet, "/hello", handler, operation)
 	require.NoError(t, err)

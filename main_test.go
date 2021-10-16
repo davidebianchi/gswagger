@@ -3,6 +3,7 @@ package swagger
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -314,4 +315,13 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		require.NoError(t, err)
 		require.YAMLEq(t, string(expected), body, string(body))
 	})
+}
+
+func readBody(t *testing.T, requestBody io.ReadCloser) string {
+	t.Helper()
+
+	body, err := ioutil.ReadAll(requestBody)
+	require.NoError(t, err)
+
+	return string(body)
 }
