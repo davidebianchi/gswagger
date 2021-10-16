@@ -213,6 +213,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		router, err := NewRouter(mRouter, Options{
 			Openapi: swagger,
 		})
+		require.NoError(t, err)
 
 		err = router.GenerateAndExposeSwagger()
 		require.NoError(t, err)
@@ -240,6 +241,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 			Openapi:               swagger,
 			JSONDocumentationPath: "/custom/path",
 		})
+		require.NoError(t, err)
 
 		err = router.GenerateAndExposeSwagger()
 		require.NoError(t, err)
@@ -266,6 +268,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		router, err := NewRouter(mRouter, Options{
 			Openapi: swagger,
 		})
+		require.NoError(t, err)
 
 		err = router.GenerateAndExposeSwagger()
 		require.NoError(t, err)
@@ -293,6 +296,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 			Openapi:               swagger,
 			YAMLDocumentationPath: "/custom/path",
 		})
+		require.NoError(t, err)
 
 		err = router.GenerateAndExposeSwagger()
 		require.NoError(t, err)
