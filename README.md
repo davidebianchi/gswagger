@@ -16,7 +16,7 @@ The router supported out of the box are:
 
 - [gorilla-mux](https://github.com/gorilla/mux)
 
-This lib uses [kin-openapi]to automatically generate and serve a swagger file.
+This lib uses [kin-openapi] to automatically generate and serve a swagger file.
 
 To convert struct to schemas, we use [jsonschema] library.  
 The struct must contains the appropriate struct tags to be inserted in json schema to generate the schema dynamically.  
