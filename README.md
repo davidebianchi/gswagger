@@ -117,3 +117,4 @@ see the [tags on this repository](https://github.com/davidebianchi/gswagger/tags
 [godoc-link]: https://godoc.org/github.com/davidebianchi/gswagger
 [go-report-card]: https://goreportcard.com/badge/github.com/davidebianchi/gswagger
 [go-report-card-link]: https://goreportcard.com/report/github.com/davidebianchi/gswagger
+[semver]: https://semver.org/
