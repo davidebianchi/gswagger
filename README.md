@@ -20,9 +20,11 @@ This lib uses [kin-openapi]to automatically generate and serve a swagger file.
 
 To convert struct to schemas, we use [jsonschema] library.  
 The struct must contains the appropriate struct tags to be inserted in json schema to generate the schema dynamically.  
-It is always possible to add a totally custom swagger schema using [kin-openapi]
+It is always possible to add a totally custom swagger schema using [kin-openapi].
 
 ## Usage
+
+To add a router not handled out of the box, it must implements the [Router interface](./apirouter/router.go).
 
 An example usage of this lib with gorilla mux:
 
