@@ -28,7 +28,7 @@ const (
 )
 
 // Router handle the api router and the swagger schema.
-// Supported api router are:
+// api router supported out of the box are:
 // - gorilla mux
 type Router struct {
 	router                apirouter.Router
