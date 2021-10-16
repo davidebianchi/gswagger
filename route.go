@@ -3,12 +3,11 @@ package swagger
 import (
 	"errors"
 	"fmt"
-	"net/http"
 	"sort"
 
 	"github.com/alecthomas/jsonschema"
+	"github.com/davidebianchi/gswagger/apirouter"
 	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/gorilla/mux"
 )
 
 var (
@@ -22,12 +21,9 @@ var (
 	ErrQuerystring = errors.New("errors generating querystring schema")
 )
 
-// Handler is the http type handler
-type Handler func(w http.ResponseWriter, req *http.Request)
-
 // AddRawRoute add route to router with specific method, path and handler. Add the
 // router also to the swagger schema, after validating it
-func (r Router) AddRawRoute(method string, path string, handler Handler, operation Operation) (*mux.Route, error) {
+func (r Router) AddRawRoute(method string, path string, handler apirouter.HandlerFunc, operation Operation) (interface{}, error) {
 	op := operation.Operation
 	if op != nil {
 		err := operation.Validate(r.context)
@@ -42,10 +38,8 @@ func (r Router) AddRawRoute(method string, path string, handler Handler, operati
 	}
 	r.swaggerSchema.AddOperation(path, method, op)
 
-	return r.router.HandleFunc(path, func(w http.ResponseWriter, req *http.Request) {
-		// Handle, when content-type is json, the request/response marshalling? Maybe with a specific option.
-		handler(w, req)
-	}).Methods(method), nil
+	// Handle, when content-type is json, the request/response marshalling? Maybe with a specific option.
+	return r.router.AddRoute(path, method, handler), nil
 }
 
 // Content is the type of a content.
@@ -90,7 +84,7 @@ const (
 )
 
 // AddRoute add a route with json schema inferted by passed schema.
-func (r Router) AddRoute(method string, path string, handler Handler, schema Definitions) (*mux.Route, error) {
+func (r Router) AddRoute(method string, path string, handler apirouter.HandlerFunc, schema Definitions) (interface{}, error) {
 	operation := NewOperation()
 	operation.Responses = make(openapi3.Responses)
 
