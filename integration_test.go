@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	swaggerOpenapiTitle   = "test title"
-	swaggerOpenapiVersion = "test version"
+	swaggerOpenapiTitle   = "test swagger title"
+	swaggerOpenapiVersion = "test swagger version"
 )
 
 func TestIntegration(t *testing.T) {

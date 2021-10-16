@@ -942,8 +942,8 @@ func getBaseSwagger(t *testing.T) *openapi3.T {
 
 	return &openapi3.T{
 		Info: &openapi3.Info{
-			Title:   "test title",
-			Version: "test version",
+			Title:   "test swagger title",
+			Version: "test swagger version",
 		},
 	}
 }
