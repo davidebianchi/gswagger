@@ -4,7 +4,7 @@
 [![Go Report Card][go-report-card]][go-report-card-link]
 [![GoDoc][godoc-svg]][godoc-link]
 
-# Gorilla Swagger
+# gswagger
 
 </div>
 
