@@ -12,7 +12,7 @@ Generate a swagger dynamically based on the types used to handle request and res
 
 It works with any router which support handler net/http HandlerFunc compatible.
 
-The router supported out of the box are:
+The routers supported out of the box are:
 
 - [gorilla-mux](https://github.com/gorilla/mux)
 
