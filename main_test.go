@@ -15,7 +15,7 @@ import (
 )
 
 func TestNewRouter(t *testing.T) {
-	mRouter := mux.NewRouter()
+	mRouter := NewGorillaMuxRouter(mux.NewRouter())
 
 	info := &openapi3.Info{
 		Title:   "my title",
@@ -184,7 +184,7 @@ func TestGenerateValidSwagger(t *testing.T) {
 func TestGenerateAndExposeSwagger(t *testing.T) {
 	t.Run("fails swagger validation", func(t *testing.T) {
 		mRouter := mux.NewRouter()
-		router, err := NewRouter(mRouter, Options{
+		router, err := NewRouter(NewGorillaMuxRouter(mRouter), Options{
 			Openapi: &openapi3.T{
 				Info: &openapi3.Info{
 					Title:   "title",
@@ -210,7 +210,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
-		router, err := NewRouter(mRouter, Options{
+		router, err := NewRouter(NewGorillaMuxRouter(mRouter), Options{
 			Openapi: swagger,
 		})
 		require.NoError(t, err)
@@ -237,7 +237,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
-		router, err := NewRouter(mRouter, Options{
+		router, err := NewRouter(NewGorillaMuxRouter(mRouter), Options{
 			Openapi:               swagger,
 			JSONDocumentationPath: "/custom/path",
 		})
@@ -265,7 +265,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
-		router, err := NewRouter(mRouter, Options{
+		router, err := NewRouter(NewGorillaMuxRouter(mRouter), Options{
 			Openapi: swagger,
 		})
 		require.NoError(t, err)
@@ -292,7 +292,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
-		router, err := NewRouter(mRouter, Options{
+		router, err := NewRouter(NewGorillaMuxRouter(mRouter), Options{
 			Openapi:               swagger,
 			YAMLDocumentationPath: "/custom/path",
 		})

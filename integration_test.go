@@ -61,7 +61,7 @@ func setupSwagger(t *testing.T) *mux.Router {
 	context := context.Background()
 	muxRouter := mux.NewRouter()
 
-	router, err := NewRouter(muxRouter, Options{
+	router, err := NewRouter(NewGorillaMuxRouter(muxRouter), Options{
 		Context: context,
 		Openapi: &openapi3.T{
 			Info: &openapi3.Info{

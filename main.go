@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/davidebianchi/gswagger/apirouter"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/ghodss/yaml"
-	"github.com/gorilla/mux"
 )
 
 var (
@@ -27,9 +27,11 @@ const (
 	defaultOpenapiVersion        = "3.0.0"
 )
 
-// Router handle the gorilla mux router and the swagger schema
+// Router handle the api router and the swagger schema.
+// Supported api router are:
+// - gorilla mux
 type Router struct {
-	router                *mux.Router
+	router                apirouter.Router
 	swaggerSchema         *openapi3.T
 	context               context.Context
 	jsonDocumentationPath string
@@ -47,7 +49,7 @@ type Options struct {
 }
 
 // NewRouter generate new router with swagger. Default to OpenAPI 3.0.0
-func NewRouter(router *mux.Router, options Options) (*Router, error) {
+func NewRouter(router apirouter.Router, options Options) (*Router, error) {
 	swagger, err := generateNewValidSwagger(options.Openapi)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
@@ -118,21 +120,21 @@ func (r Router) GenerateAndExposeSwagger() error {
 	if err != nil {
 		return fmt.Errorf("%w json marshal: %s", ErrGenerateSwagger, err)
 	}
-	r.router.HandleFunc(r.jsonDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
+	r.router.AddRoute(r.jsonDocumentationPath, http.MethodGet, func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(jsonSwagger)
-	}).Methods(http.MethodGet)
+	})
 
 	yamlSwagger, err := yaml.JSONToYAML(jsonSwagger)
 	if err != nil {
 		return fmt.Errorf("%w yaml marshal: %s", ErrGenerateSwagger, err)
 	}
-	r.router.HandleFunc(r.yamlDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
+	r.router.AddRoute(r.yamlDocumentationPath, http.MethodGet, func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
 		w.Write(yamlSwagger)
-	}).Methods(http.MethodGet)
+	})
 
 	return nil
 }
@@ -143,3 +145,6 @@ func isValidDocumentationPath(path string) error {
 	}
 	return nil
 }
+
+// First level export to create api router
+var NewGorillaMuxRouter = apirouter.NewGorillaMuxRouter
