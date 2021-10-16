@@ -30,7 +30,7 @@ const (
 // Router handle the gorilla mux router and the swagger schema
 type Router struct {
 	router                *mux.Router
-	swaggerSchema         *openapi3.Swagger
+	swaggerSchema         *openapi3.T
 	context               context.Context
 	jsonDocumentationPath string
 	yamlDocumentationPath string
@@ -39,7 +39,7 @@ type Router struct {
 // Options to be passed to create the new router and swagger
 type Options struct {
 	Context context.Context
-	Openapi *openapi3.Swagger
+	Openapi *openapi3.T
 	// JSONDocumentationPath is the path exposed by json endpoint. Default to /documentation/json.
 	JSONDocumentationPath string
 	// YAMLDocumentationPath is the path exposed by yaml endpoint. Default to /documentation/yaml.
@@ -83,7 +83,7 @@ func NewRouter(router *mux.Router, options Options) (*Router, error) {
 	}, nil
 }
 
-func generateNewValidSwagger(swagger *openapi3.Swagger) (*openapi3.Swagger, error) {
+func generateNewValidSwagger(swagger *openapi3.T) (*openapi3.T, error) {
 	if swagger == nil {
 		return nil, fmt.Errorf("swagger is required")
 	}

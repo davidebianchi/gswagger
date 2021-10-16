@@ -63,7 +63,7 @@ func setupSwagger(t *testing.T) *mux.Router {
 
 	router, err := NewRouter(muxRouter, Options{
 		Context: context,
-		Openapi: &openapi3.Swagger{
+		Openapi: &openapi3.T{
 			Info: &openapi3.Info{
 				Title:   swaggerOpenapiTitle,
 				Version: swaggerOpenapiVersion,
