@@ -8,15 +8,15 @@
 
 </div>
 
-Generate a swagger dynamically based on the types used to handle request and response.
+Generate an openapi spec dynamically based on the types used to handle request and response.
 
 It works with any router which support handler net/http HandlerFunc compatible.
 
-The router supported out of the box are:
+The routers supported out of the box are:
 
 - [gorilla-mux](https://github.com/gorilla/mux)
 
-This lib uses [kin-openapi]to automatically generate and serve a swagger file.
+This lib uses [kin-openapi] to automatically generate and serve a swagger file.
 
 To convert struct to schemas, we use [jsonschema] library.  
 The struct must contains the appropriate struct tags to be inserted in json schema to generate the schema dynamically.  
