@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/davidebianchi/gswagger/apirouter"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
@@ -61,7 +62,7 @@ func setupSwagger(t *testing.T) *mux.Router {
 	context := context.Background()
 	muxRouter := mux.NewRouter()
 
-	router, err := NewRouter(NewGorillaMuxRouter(muxRouter), Options{
+	router, err := NewRouter(apirouter.NewGorillaMuxRouter(muxRouter), Options{
 		Context: context,
 		Openapi: &openapi3.T{
 			Info: &openapi3.Info{

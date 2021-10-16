@@ -145,6 +145,3 @@ func isValidDocumentationPath(path string) error {
 	}
 	return nil
 }
-
-// First level export to create api router
-var NewGorillaMuxRouter = apirouter.NewGorillaMuxRouter
