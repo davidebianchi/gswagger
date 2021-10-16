@@ -8,7 +8,7 @@
 
 </div>
 
-Generate a openapi spec dynamically based on the types used to handle request and response.
+Generate an openapi spec dynamically based on the types used to handle request and response.
 
 It works with any router which support handler net/http HandlerFunc compatible.
 
