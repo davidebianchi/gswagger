@@ -17,7 +17,8 @@ import (
 )
 
 func TestNewRouter(t *testing.T) {
-	mRouter := apirouter.NewGorillaMuxRouter(mux.NewRouter())
+	muxRouter := mux.NewRouter()
+	mAPIRouter := apirouter.NewGorillaMuxRouter(muxRouter)
 
 	info := &openapi3.Info{
 		Title:   "my title",
@@ -29,21 +30,21 @@ func TestNewRouter(t *testing.T) {
 	}
 
 	t.Run("not ok - invalid Openapi option", func(t *testing.T) {
-		r, err := NewRouter(mRouter, Options{})
+		r, err := NewRouter(mAPIRouter, Options{})
 
 		require.Nil(t, r)
 		require.EqualError(t, err, fmt.Sprintf("%s: swagger is required", ErrValidatingSwagger))
 	})
 
 	t.Run("ok - with default context", func(t *testing.T) {
-		r, err := NewRouter(mRouter, Options{
+		r, err := NewRouter(mAPIRouter, Options{
 			Openapi: openapi,
 		})
 
 		require.NoError(t, err)
 		require.Equal(t, &Router{
 			context:               context.Background(),
-			router:                mRouter,
+			router:                mAPIRouter,
 			swaggerSchema:         openapi,
 			jsonDocumentationPath: DefaultJSONDocumentationPath,
 			yamlDocumentationPath: DefaultYAMLDocumentationPath,
@@ -53,7 +54,7 @@ func TestNewRouter(t *testing.T) {
 	t.Run("ok - with custom context", func(t *testing.T) {
 		type key struct{}
 		ctx := context.WithValue(context.Background(), key{}, "value")
-		r, err := NewRouter(mRouter, Options{
+		r, err := NewRouter(mAPIRouter, Options{
 			Openapi: openapi,
 			Context: ctx,
 		})
@@ -61,7 +62,7 @@ func TestNewRouter(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, &Router{
 			context:               ctx,
-			router:                mRouter,
+			router:                mAPIRouter,
 			swaggerSchema:         openapi,
 			jsonDocumentationPath: DefaultJSONDocumentationPath,
 			yamlDocumentationPath: DefaultYAMLDocumentationPath,
@@ -71,7 +72,7 @@ func TestNewRouter(t *testing.T) {
 	t.Run("ok - with custom docs paths", func(t *testing.T) {
 		type key struct{}
 		ctx := context.WithValue(context.Background(), key{}, "value")
-		r, err := NewRouter(mRouter, Options{
+		r, err := NewRouter(mAPIRouter, Options{
 			Openapi:               openapi,
 			Context:               ctx,
 			JSONDocumentationPath: "/json/path",
@@ -81,7 +82,7 @@ func TestNewRouter(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, &Router{
 			context:               ctx,
-			router:                mRouter,
+			router:                mAPIRouter,
 			swaggerSchema:         openapi,
 			jsonDocumentationPath: "/json/path",
 			yamlDocumentationPath: "/yaml/path",
@@ -91,7 +92,7 @@ func TestNewRouter(t *testing.T) {
 	t.Run("ko - json documentation path does not start with /", func(t *testing.T) {
 		type key struct{}
 		ctx := context.WithValue(context.Background(), key{}, "value")
-		r, err := NewRouter(mRouter, Options{
+		r, err := NewRouter(mAPIRouter, Options{
 			Openapi:               openapi,
 			Context:               ctx,
 			JSONDocumentationPath: "json/path",
@@ -105,7 +106,7 @@ func TestNewRouter(t *testing.T) {
 	t.Run("ko - yaml documentation path does not start with /", func(t *testing.T) {
 		type key struct{}
 		ctx := context.WithValue(context.Background(), key{}, "value")
-		r, err := NewRouter(mRouter, Options{
+		r, err := NewRouter(mAPIRouter, Options{
 			Openapi:               openapi,
 			Context:               ctx,
 			JSONDocumentationPath: "/json/path",
@@ -114,6 +115,23 @@ func TestNewRouter(t *testing.T) {
 
 		require.EqualError(t, err, "invalid path yaml/path. Path should start with '/'")
 		require.Nil(t, r)
+	})
+
+	t.Run("get swagger schema", func(t *testing.T) {
+		r, err := NewRouter(mAPIRouter, Options{
+			Openapi: openapi,
+		})
+
+		require.NoError(t, err)
+		require.Equal(t, &Router{
+			context:               context.Background(),
+			router:                mAPIRouter,
+			swaggerSchema:         openapi,
+			jsonDocumentationPath: DefaultJSONDocumentationPath,
+			yamlDocumentationPath: DefaultYAMLDocumentationPath,
+		}, r)
+
+		require.Equal(t, openapi, r.GetSwaggerSchema())
 	})
 }
 
@@ -314,6 +332,47 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		expected, err := ioutil.ReadFile("testdata/users_employees.yaml")
 		require.NoError(t, err)
 		require.YAMLEq(t, string(expected), body, string(body))
+	})
+
+	t.Run("ok - subrouter", func(t *testing.T) {
+		mRouter := mux.NewRouter()
+
+		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
+		require.NoError(t, err)
+		router, err := NewRouter(apirouter.NewGorillaMuxRouter(mRouter), Options{
+			Openapi:               swagger,
+			JSONDocumentationPath: "/custom/path",
+		})
+		require.NoError(t, err)
+
+		mSubRouter := mRouter.PathPrefix("/foo-bar").Subrouter()
+		subrouter, err := NewRouter(apirouter.NewGorillaMuxRouter(mSubRouter), Options{
+			Openapi:               router.GetSwaggerSchema(),
+			JSONDocumentationPath: "/custom/path",
+			PathPrefix:            "/foo-bar",
+		})
+		require.NoError(t, err)
+
+		_, err = subrouter.AddRoute(http.MethodGet, "/taz", func(w http.ResponseWriter, req *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("ok"))
+		}, Definitions{})
+		require.NoError(t, err)
+
+		err = router.GenerateAndExposeSwagger()
+		require.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/custom/path", nil)
+		mRouter.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusOK, w.Result().StatusCode)
+		require.True(t, strings.Contains(w.Result().Header.Get("content-type"), "application/json"))
+
+		body := readBody(t, w.Result().Body)
+		actual, err := ioutil.ReadFile("testdata/users_employees_subrouter.json")
+		require.NoError(t, err)
+		require.JSONEq(t, string(actual), body)
 	})
 }
 

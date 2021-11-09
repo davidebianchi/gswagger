@@ -3,6 +3,7 @@ package swagger
 import (
 	"errors"
 	"fmt"
+	"path"
 	"sort"
 
 	"github.com/alecthomas/jsonschema"
@@ -23,7 +24,7 @@ var (
 
 // AddRawRoute add route to router with specific method, path and handler. Add the
 // router also to the swagger schema, after validating it
-func (r Router) AddRawRoute(method string, path string, handler apirouter.HandlerFunc, operation Operation) (interface{}, error) {
+func (r Router) AddRawRoute(method string, routePath string, handler apirouter.HandlerFunc, operation Operation) (interface{}, error) {
 	op := operation.Operation
 	if op != nil {
 		err := operation.Validate(r.context)
@@ -36,10 +37,11 @@ func (r Router) AddRawRoute(method string, path string, handler apirouter.Handle
 			op.Responses = openapi3.NewResponses()
 		}
 	}
-	r.swaggerSchema.AddOperation(path, method, op)
+	pathWithPrefix := path.Join(r.pathPrefix, routePath)
+	r.swaggerSchema.AddOperation(pathWithPrefix, method, op)
 
 	// Handle, when content-type is json, the request/response marshalling? Maybe with a specific option.
-	return r.router.AddRoute(path, method, handler), nil
+	return r.router.AddRoute(pathWithPrefix, method, handler), nil
 }
 
 // Content is the type of a content.
