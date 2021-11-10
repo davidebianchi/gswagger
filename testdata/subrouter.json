@@ -23,6 +23,15 @@
           }
         }
       }
+    },
+    "/prefix": {
+      "get": {
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
     }
   }
 }

@@ -348,6 +348,14 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		}, Definitions{})
 		require.NoError(t, err)
 
+		t.Run("add route with path equal to prefix path", func(t *testing.T) {
+			_, err = subrouter.AddRoute(http.MethodGet, "", func(w http.ResponseWriter, req *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("ok"))
+			}, Definitions{})
+			require.NoError(t, err)
+		})
+
 		err = router.GenerateAndExposeSwagger()
 		require.NoError(t, err)
 
