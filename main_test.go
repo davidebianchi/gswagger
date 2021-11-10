@@ -346,10 +346,8 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		require.NoError(t, err)
 
 		mSubRouter := mRouter.PathPrefix("/foo-bar").Subrouter()
-		subrouter, err := NewRouter(apirouter.NewGorillaMuxRouter(mSubRouter), Options{
-			Openapi:               router.GetSwaggerSchema(),
-			JSONDocumentationPath: "/custom/path",
-			PathPrefix:            "/foo-bar",
+		subrouter, err := router.SubRouter(apirouter.NewGorillaMuxRouter(mSubRouter), SubRouterOptions{
+			PathPrefix: "/foo-bar",
 		})
 		require.NoError(t, err)
 

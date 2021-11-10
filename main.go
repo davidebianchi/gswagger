@@ -93,6 +93,21 @@ func NewRouter(router apirouter.Router, options Options) (*Router, error) {
 	}, nil
 }
 
+type SubRouterOptions struct {
+	PathPrefix string
+}
+
+func (r Router) SubRouter(router apirouter.Router, opts SubRouterOptions) (*Router, error) {
+	return &Router{
+		router:                router,
+		swaggerSchema:         r.swaggerSchema,
+		context:               r.context,
+		jsonDocumentationPath: r.jsonDocumentationPath,
+		yamlDocumentationPath: r.yamlDocumentationPath,
+		pathPrefix:            opts.PathPrefix,
+	}, nil
+}
+
 func generateNewValidSwagger(swagger *openapi3.T) (*openapi3.T, error) {
 	if swagger == nil {
 		return nil, fmt.Errorf("swagger is required")
