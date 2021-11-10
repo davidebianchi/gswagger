@@ -26,7 +26,7 @@ jobs:
            go get -v -t -d ./...
        - name: Run tests
          run: |
-          go test ./... -count=1 -race -cover
+          go test ./... -count=1 -race -cover -coverprofile cover.out
        - name: Build
          run: |
            go build -v .
