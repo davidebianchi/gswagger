@@ -1,6 +1,7 @@
 <div align="center">
-  
+
 [![Build Status][github-actions-svg]][github-actions]
+[![Coverage Status](https://coveralls.io/repos/github/davidebianchi/gswagger/badge.svg?branch=main)](https://coveralls.io/github/davidebianchi/gswagger?branch=main)
 [![Go Report Card][go-report-card]][go-report-card-link]
 [![GoDoc][godoc-svg]][godoc-link]
 
