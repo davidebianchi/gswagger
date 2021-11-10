@@ -192,7 +192,16 @@
         }
       }
     },
-    "/foo-bar/taz": {
+    "/foo": {
+      "get": {
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/prefix/taz": {
       "get": {
         "responses": {
           "default": {

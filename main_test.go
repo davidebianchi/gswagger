@@ -345,9 +345,14 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		mSubRouter := mRouter.PathPrefix("/foo-bar").Subrouter()
+		router.AddRoute(http.MethodGet, "/foo", func(w http.ResponseWriter, req *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("ok"))
+		}, Definitions{})
+
+		mSubRouter := mRouter.PathPrefix("/prefix").Subrouter()
 		subrouter, err := router.SubRouter(apirouter.NewGorillaMuxRouter(mSubRouter), SubRouterOptions{
-			PathPrefix: "/foo-bar",
+			PathPrefix: "/prefix",
 		})
 		require.NoError(t, err)
 
@@ -369,6 +374,42 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 
 		body := readBody(t, w.Result().Body)
 		actual, err := ioutil.ReadFile("testdata/users_employees_subrouter.json")
+		require.NoError(t, err)
+		require.JSONEq(t, string(actual), body)
+	})
+
+	t.Run("ok - new router with path prefix", func(t *testing.T) {
+		mRouter := mux.NewRouter()
+
+		router, err := NewRouter(apirouter.NewGorillaMuxRouter(mRouter), Options{
+			Openapi: &openapi3.T{
+				Info: &openapi3.Info{
+					Title:   "test swagger title",
+					Version: "test swagger version",
+				},
+			},
+			JSONDocumentationPath: "/custom/path",
+			PathPrefix:            "/prefix",
+		})
+		require.NoError(t, err)
+
+		router.AddRoute(http.MethodGet, "/foo", func(w http.ResponseWriter, req *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("ok"))
+		}, Definitions{})
+
+		err = router.GenerateAndExposeSwagger()
+		require.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/custom/path", nil)
+		mRouter.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusOK, w.Result().StatusCode)
+		require.True(t, strings.Contains(w.Result().Header.Get("content-type"), "application/json"))
+
+		body := readBody(t, w.Result().Body)
+		actual, err := ioutil.ReadFile("testdata/router_with_prefix.json")
 		require.NoError(t, err)
 		require.JSONEq(t, string(actual), body)
 	})
