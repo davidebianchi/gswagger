@@ -36,6 +36,7 @@ type Router struct {
 	context               context.Context
 	jsonDocumentationPath string
 	yamlDocumentationPath string
+	pathPrefix            string
 }
 
 // Options to be passed to create the new router and swagger
@@ -46,6 +47,8 @@ type Options struct {
 	JSONDocumentationPath string
 	// YAMLDocumentationPath is the path exposed by yaml endpoint. Default to /documentation/yaml.
 	YAMLDocumentationPath string
+	// Add path prefix to add to every router path.
+	PathPrefix string
 }
 
 // NewRouter generate new router with swagger. Default to OpenAPI 3.0.0
@@ -82,6 +85,22 @@ func NewRouter(router apirouter.Router, options Options) (*Router, error) {
 		context:               ctx,
 		yamlDocumentationPath: yamlDocumentationPath,
 		jsonDocumentationPath: jsonDocumentationPath,
+		pathPrefix:            options.PathPrefix,
+	}, nil
+}
+
+type SubRouterOptions struct {
+	PathPrefix string
+}
+
+func (r Router) SubRouter(router apirouter.Router, opts SubRouterOptions) (*Router, error) {
+	return &Router{
+		router:                router,
+		swaggerSchema:         r.swaggerSchema,
+		context:               r.context,
+		jsonDocumentationPath: r.jsonDocumentationPath,
+		yamlDocumentationPath: r.yamlDocumentationPath,
+		pathPrefix:            opts.PathPrefix,
 	}, nil
 }
 
