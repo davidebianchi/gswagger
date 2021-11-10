@@ -39,10 +39,6 @@ type Router struct {
 	pathPrefix            string
 }
 
-func (r Router) GetSwaggerSchema() *openapi3.T {
-	return r.swaggerSchema
-}
-
 // Options to be passed to create the new router and swagger
 type Options struct {
 	Context context.Context

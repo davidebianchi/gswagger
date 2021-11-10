@@ -116,23 +116,6 @@ func TestNewRouter(t *testing.T) {
 		require.EqualError(t, err, "invalid path yaml/path. Path should start with '/'")
 		require.Nil(t, r)
 	})
-
-	t.Run("get swagger schema", func(t *testing.T) {
-		r, err := NewRouter(mAPIRouter, Options{
-			Openapi: openapi,
-		})
-
-		require.NoError(t, err)
-		require.Equal(t, &Router{
-			context:               context.Background(),
-			router:                mAPIRouter,
-			swaggerSchema:         openapi,
-			jsonDocumentationPath: DefaultJSONDocumentationPath,
-			yamlDocumentationPath: DefaultYAMLDocumentationPath,
-		}, r)
-
-		require.Equal(t, openapi, r.GetSwaggerSchema())
-	})
 }
 
 func TestGenerateValidSwagger(t *testing.T) {
