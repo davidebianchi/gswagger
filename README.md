@@ -103,6 +103,15 @@ router.AddRawRoute(http.MethodPost, "/cars", okHandler, operation)
 
 This configuration will output the schema shown [here](testdata/users_employees.json)
 
+## SubRouter
+
+It is possible to create a new sub router from the swagger.Router.
+It is possible to add a prefix to all the routes created under the specific router (instead of use the router specific methods, if given, or repeat the prefix for every route).
+
+It could also be useful if you need a sub router to create a group of APIs which use the same middleware (for example,this could be achieved by the SubRouter features of gorilla mux, for example).
+
+To see the SubRouter example, please see the [SubRouter test](./integration_test.go).
+
 ### FAQ
 
 1. How to add format `binary`?
