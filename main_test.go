@@ -320,10 +320,13 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 	t.Run("ok - subrouter", func(t *testing.T) {
 		mRouter := mux.NewRouter()
 
-		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
-		require.NoError(t, err)
 		router, err := NewRouter(apirouter.NewGorillaMuxRouter(mRouter), Options{
-			Openapi:               swagger,
+			Openapi: &openapi3.T{
+				Info: &openapi3.Info{
+					Title:   "test swagger title",
+					Version: "test swagger version",
+				},
+			},
 			JSONDocumentationPath: "/custom/path",
 		})
 		require.NoError(t, err)
@@ -356,7 +359,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		require.True(t, strings.Contains(w.Result().Header.Get("content-type"), "application/json"))
 
 		body := readBody(t, w.Result().Body)
-		actual, err := ioutil.ReadFile("testdata/users_employees_subrouter.json")
+		actual, err := ioutil.ReadFile("testdata/subrouter.json")
 		require.NoError(t, err)
 		require.JSONEq(t, string(actual), body)
 	})
