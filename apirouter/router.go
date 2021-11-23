@@ -6,7 +6,7 @@ import "net/http"
 type HandlerFunc func(w http.ResponseWriter, req *http.Request)
 
 type Router interface {
-	AddRoute(path string, method string, handler HandlerFunc) Route
+	AddRoute(method string, path string, handler HandlerFunc) Route
 }
 
 type Route interface{}

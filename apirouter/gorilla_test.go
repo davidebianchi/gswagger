@@ -18,7 +18,7 @@ func TestGorillaMuxRouter(t *testing.T) {
 	})
 
 	t.Run("add new route", func(t *testing.T) {
-		route := ar.AddRoute("/foo", http.MethodGet, func(w http.ResponseWriter, req *http.Request) {
+		route := ar.AddRoute(http.MethodGet, "/foo", func(w http.ResponseWriter, req *http.Request) {
 			w.WriteHeader(200)
 			w.Write(nil)
 		})
