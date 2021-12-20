@@ -1,6 +1,7 @@
 package apirouter
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -17,11 +18,13 @@ func TestGorillaMuxRouter(t *testing.T) {
 		require.Implements(t, (*Router)(nil), ar)
 	})
 
-	t.Run("add new route", func(t *testing.T) {
-		route := ar.AddRoute(http.MethodGet, "/foo", func(w http.ResponseWriter, req *http.Request) {
+	t.Run("add new route with func(w http.ResponseWriter, req *http.Request)", func(t *testing.T) {
+		h := func(w http.ResponseWriter, req *http.Request) {
 			w.WriteHeader(200)
 			w.Write(nil)
-		})
+		}
+		route, err := ar.AddRoute(http.MethodGet, "/foo", h)
+		require.NoError(t, err)
 
 		_, ok := route.(*mux.Route)
 		require.True(t, ok)
@@ -43,5 +46,15 @@ func TestGorillaMuxRouter(t *testing.T) {
 
 			require.Equal(t, http.StatusMethodNotAllowed, w.Result().StatusCode)
 		})
+	})
+
+	t.Run("add new route fails if handler is not handled", func(t *testing.T) {
+		type HandleFunc func(w http.ResponseWriter, req *http.Request)
+		route, err := ar.AddRoute(http.MethodGet, "/foo", HandleFunc(func(w http.ResponseWriter, req *http.Request) {
+			w.WriteHeader(200)
+			w.Write(nil)
+		}))
+		require.Nil(t, route)
+		require.EqualError(t, err, fmt.Sprintf("%s: handler type for gorilla is not handled", ErrInvalidHandler))
 	})
 }

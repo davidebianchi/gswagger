@@ -7,7 +7,6 @@ import (
 	"sort"
 
 	"github.com/alecthomas/jsonschema"
-	"github.com/davidebianchi/gswagger/apirouter"
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
@@ -24,7 +23,7 @@ var (
 
 // AddRawRoute add route to router with specific method, path and handler. Add the
 // router also to the swagger schema, after validating it
-func (r Router) AddRawRoute(method string, routePath string, handler apirouter.HandlerFunc, operation Operation) (interface{}, error) {
+func (r Router) AddRawRoute(method string, routePath string, handler interface{}, operation Operation) (interface{}, error) {
 	op := operation.Operation
 	if op != nil {
 		err := operation.Validate(r.context)
@@ -41,7 +40,7 @@ func (r Router) AddRawRoute(method string, routePath string, handler apirouter.H
 	r.swaggerSchema.AddOperation(pathWithPrefix, method, op)
 
 	// Handle, when content-type is json, the request/response marshalling? Maybe with a specific option.
-	return r.router.AddRoute(method, pathWithPrefix, handler), nil
+	return r.router.AddRoute(method, pathWithPrefix, handler)
 }
 
 // Content is the type of a content.
@@ -86,7 +85,7 @@ const (
 )
 
 // AddRoute add a route with json schema inferted by passed schema.
-func (r Router) AddRoute(method string, path string, handler apirouter.HandlerFunc, schema Definitions) (interface{}, error) {
+func (r Router) AddRoute(method string, path string, handler interface{}, schema Definitions) (interface{}, error) {
 	operation := NewOperation()
 	operation.Responses = make(openapi3.Responses)
 

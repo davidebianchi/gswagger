@@ -24,9 +24,11 @@ After:
 
 ```go
 type Router interface {
-  AddRoute(method, path string, handler HandlerFunc) Route
+  AddRoute(method, path string, handler interface{}) Route
 }
 ```
+
+- apirouter Router now take interface{} as handler argument instead of HandlerFunc. This is to allow the router to be used with other handler types. For the basic gorilla apirouter implementation, only the `func(w http.ResponseWriter, req *http.Request)` type is supported. If you need other handler types, you can create it using the `apirouter.Router` interface.
 
 ## v0.3.0 - 10-11-2021
 

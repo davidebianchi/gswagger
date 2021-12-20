@@ -1,12 +1,13 @@
 package apirouter
 
-import "net/http"
+import (
+	"errors"
+)
 
-// Handler is the http type handler
-type HandlerFunc func(w http.ResponseWriter, req *http.Request)
+var ErrInvalidHandler = errors.New("invalid handler")
 
 type Router interface {
-	AddRoute(method string, path string, handler HandlerFunc) Route
+	AddRoute(method string, path string, handler interface{}) (Route, error)
 }
 
 type Route interface{}

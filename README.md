@@ -11,11 +11,13 @@
 
 Generate an openapi spec dynamically based on the types used to handle request and response.
 
-It works with any router which support handler net/http HandlerFunc compatible.
+It works with any router.
 
 The routers supported out of the box are:
 
-- [gorilla-mux](https://github.com/gorilla/mux)
+- [gorilla-mux](https://github.com/gorilla/mux) with handler of type `func(w http.ResponseWriter, req *http.Request)`.
+
+If you need other handler types (or to support other routers) you can create it using the [apirouter.Router](apirouter/router.go) interface.
 
 This lib uses [kin-openapi] to automatically generate and serve a swagger file.
 
