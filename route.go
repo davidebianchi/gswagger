@@ -41,7 +41,7 @@ func (r Router) AddRawRoute(method string, routePath string, handler apirouter.H
 	r.swaggerSchema.AddOperation(pathWithPrefix, method, op)
 
 	// Handle, when content-type is json, the request/response marshalling? Maybe with a specific option.
-	return r.router.AddRoute(pathWithPrefix, method, handler), nil
+	return r.router.AddRoute(method, pathWithPrefix, handler), nil
 }
 
 // Content is the type of a content.
