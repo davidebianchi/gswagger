@@ -36,7 +36,7 @@ An example usage of this lib with gorilla mux:
 context := context.Background()
 muxRouter := mux.NewRouter()
 
-router, err := swagger.NewRouter(apirouter.NewGorillaMuxRouter(muxRouter), swagger.Options{
+router, err := swagger.NewRouter(gorillarouter.New(muxRouter), swagger.Options{
   Context: context,
   Openapi: &openapi3.T{
     Info: &openapi3.Info{
