@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/davidebianchi/gswagger/apirouter"
+	"github.com/davidebianchi/gswagger/gorillarouter"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
@@ -411,7 +411,7 @@ func TestAddRoutes(t *testing.T) {
 			context := context.Background()
 			r := mux.NewRouter()
 
-			router, err := NewRouter(apirouter.NewGorillaMuxRouter(r), Options{
+			router, err := NewRouter(gorillarouter.New(r), Options{
 				Context: context,
 				Openapi: getBaseSwagger(t),
 			})
@@ -602,7 +602,7 @@ func TestResolveRequestBodySchema(t *testing.T) {
 	}
 
 	mux := mux.NewRouter()
-	router, err := NewRouter(apirouter.NewGorillaMuxRouter(mux), Options{
+	router, err := NewRouter(gorillarouter.New(mux), Options{
 		Openapi: getBaseSwagger(t),
 	})
 	require.NoError(t, err)
@@ -745,7 +745,7 @@ func TestResolveResponsesSchema(t *testing.T) {
 	}
 
 	mux := mux.NewRouter()
-	router, err := NewRouter(apirouter.NewGorillaMuxRouter(mux), Options{
+	router, err := NewRouter(gorillarouter.New(mux), Options{
 		Openapi: getBaseSwagger(t),
 	})
 	require.NoError(t, err)
@@ -915,7 +915,7 @@ func TestResolveParametersSchema(t *testing.T) {
 	}
 
 	mux := mux.NewRouter()
-	router, err := NewRouter(apirouter.NewGorillaMuxRouter(mux), Options{
+	router, err := NewRouter(gorillarouter.New(mux), Options{
 		Openapi: getBaseSwagger(t),
 	})
 	require.NoError(t, err)

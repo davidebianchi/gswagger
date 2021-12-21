@@ -139,21 +139,19 @@ func (r Router) GenerateAndExposeSwagger() error {
 	if err != nil {
 		return fmt.Errorf("%w json marshal: %s", ErrGenerateSwagger, err)
 	}
-	r.router.AddRoute(http.MethodGet, r.jsonDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(jsonSwagger)
-	})
+	_, err = r.router.AddRoute(http.MethodGet, r.jsonDocumentationPath, r.router.SwaggerHandler("application/json", jsonSwagger))
+	if err != nil {
+		return err
+	}
 
 	yamlSwagger, err := yaml.JSONToYAML(jsonSwagger)
 	if err != nil {
 		return fmt.Errorf("%w yaml marshal: %s", ErrGenerateSwagger, err)
 	}
-	r.router.AddRoute(http.MethodGet,r.yamlDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusOK)
-		w.Write(yamlSwagger)
-	})
+	_, err = r.router.AddRoute(http.MethodGet, r.yamlDocumentationPath, r.router.SwaggerHandler("text/plain", yamlSwagger))
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

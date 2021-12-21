@@ -1,10 +1,13 @@
-package apirouter
+package gorillarouter
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/davidebianchi/gswagger/apirouter"
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
@@ -12,10 +15,10 @@ import (
 
 func TestGorillaMuxRouter(t *testing.T) {
 	muxRouter := mux.NewRouter()
-	ar := NewGorillaMuxRouter(muxRouter)
+	ar := New(muxRouter)
 
 	t.Run("create a new api router", func(t *testing.T) {
-		require.Implements(t, (*Router)(nil), ar)
+		require.Implements(t, (*apirouter.Router)(nil), ar)
 	})
 
 	t.Run("add new route with func(w http.ResponseWriter, req *http.Request)", func(t *testing.T) {
@@ -48,6 +51,25 @@ func TestGorillaMuxRouter(t *testing.T) {
 		})
 	})
 
+	t.Run("create a correct swagger handler", func(t *testing.T) {
+		muxRouter := mux.NewRouter()
+		ar := New(muxRouter)
+
+		_, err := ar.AddRoute(http.MethodGet, "/path", ar.SwaggerHandler("application/json", []byte("{}")))
+		require.NoError(t, err)
+
+		req := httptest.NewRequest(http.MethodGet, "/path", nil)
+		w := httptest.NewRecorder()
+
+		muxRouter.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusOK, w.Result().StatusCode)
+		require.Equal(t, "application/json", w.Result().Header.Get("Content-Type"))
+		b, err := ioutil.ReadAll(w.Result().Body)
+		require.NoError(t, err)
+		require.Equal(t, []byte("{}"), b)
+	})
+
 	t.Run("add new route fails if handler is not handled", func(t *testing.T) {
 		type HandleFunc func(w http.ResponseWriter, req *http.Request)
 		route, err := ar.AddRoute(http.MethodGet, "/foo", HandleFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -55,6 +77,6 @@ func TestGorillaMuxRouter(t *testing.T) {
 			w.Write(nil)
 		}))
 		require.Nil(t, route)
-		require.EqualError(t, err, fmt.Sprintf("%s: handler type for gorilla is not handled", ErrInvalidHandler))
+		require.EqualError(t, err, fmt.Sprintf("%s: handler type for gorilla is not handled: method GET, path /foo", apirouter.ErrInvalidHandler))
 	})
 }
