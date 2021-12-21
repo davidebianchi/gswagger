@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### BREAKING CHANGES
 
-- modified Router interface by sorting addRoute arguments in a different manner: first method and then path
+- modified apirouter.Router interface
+  - sorting addRoute arguments in a different manner: first method and then path
+  - AddRoute now returns a Route object and an error
+  - added `SwaggerHandler` required method to router interface
+  - AddRoute method now take `interface{}` as handler argument instead of `HandlerFunc`. This is to allow the router to be used with other handler types. For the basic gorilla apirouter implementation, only the `func(w http.ResponseWriter, req *http.Request)` type is supported. If you need other handler types, you can create it using the `apirouter.Router` interface.
+
 To migrate, all the router implementation must be updated with the Router interface change.
 
 Before:
@@ -24,11 +29,15 @@ After:
 
 ```go
 type Router interface {
-  AddRoute(method, path string, handler interface{}) Route
+  AddRoute(method, path string, handler interface{}) (Route, error)
+  SwaggerHandler(contentType string, json []byte) interface{}
 }
 ```
 
-- apirouter Router now take interface{} as handler argument instead of HandlerFunc. This is to allow the router to be used with other handler types. For the basic gorilla apirouter implementation, only the `func(w http.ResponseWriter, req *http.Request)` type is supported. If you need other handler types, you can create it using the `apirouter.Router` interface.
+### Added
+
+- add support for [echo](https://echo.labstack.com/) router
+
 
 ## v0.3.0 - 10-11-2021
 

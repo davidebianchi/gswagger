@@ -16,6 +16,7 @@ It works with any router.
 The routers supported out of the box are:
 
 - [gorilla-mux](https://github.com/gorilla/mux) with handler of type `func(w http.ResponseWriter, req *http.Request)`.
+- [echo](https://echo.labstack.com/) with handler of type `func(c echo.Context) error`.
 
 If you need other handler types (or to support other routers) you can create it using the [apirouter.Router](apirouter/router.go) interface.
 
