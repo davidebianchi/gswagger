@@ -74,7 +74,7 @@ func TestIntegration(t *testing.T) {
 		})
 	})
 
-	t.Run("works correctly with subrouter - handles path prefix", func(t *testing.T) {
+	t.Run("works correctly with subrouter - handles path prefix - gorilla mux", func(t *testing.T) {
 		muxRouter, swaggerRouter := setupSwagger(t)
 
 		muxSubRouter := muxRouter.NewRoute().Subrouter()
@@ -83,7 +83,8 @@ func TestIntegration(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		subRouter.AddRoute(http.MethodGet, "/foo", okHandler, swagger.Definitions{})
+		_, err = subRouter.AddRoute(http.MethodGet, "/foo", okHandler, swagger.Definitions{})
+		require.NoError(t, err)
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/hello", nil)
@@ -112,6 +113,52 @@ func TestIntegration(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, swagger.DefaultJSONDocumentationPath, nil)
 
 			muxRouter.ServeHTTP(w, r)
+
+			require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+			body := readBody(t, w.Result().Body)
+			require.Equal(t, "{\"components\":{},\"info\":{\"title\":\"test swagger title\",\"version\":\"test swagger version\"},\"openapi\":\"3.0.0\",\"paths\":{\"/hello\":{\"get\":{\"responses\":{\"default\":{\"description\":\"\"}}}}}}", body)
+		})
+	})
+
+	t.Run("works correctly with subrouter - handles path prefix - echo", func(t *testing.T) {
+		eRouter, swaggerRouter := setupEchoSwagger(t)
+
+		subRouter, err := swaggerRouter.SubRouter(echoRouter{router: eRouter}, swagger.SubRouterOptions{
+			PathPrefix: "/prefix",
+		})
+		require.NoError(t, err)
+
+		_, err = subRouter.AddRoute(http.MethodGet, "/foo", okHandler, swagger.Definitions{})
+		require.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/hello", nil)
+
+		eRouter.ServeHTTP(w, r)
+
+		require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+		body := readBody(t, w.Result().Body)
+		require.Equal(t, "OK", body)
+
+		t.Run("correctly call sub router", func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/prefix/foo", nil)
+
+			eRouter.ServeHTTP(w, r)
+
+			require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+			body := readBody(t, w.Result().Body)
+			require.Equal(t, "OK", body)
+		})
+
+		t.Run("and generate swagger", func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, swagger.DefaultJSONDocumentationPath, nil)
+
+			eRouter.ServeHTTP(w, r)
 
 			require.Equal(t, http.StatusOK, w.Result().StatusCode)
 
