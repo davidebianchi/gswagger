@@ -12,6 +12,7 @@ import (
 	"github.com/davidebianchi/gswagger/apirouter"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gorilla/mux"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
 )
 
@@ -47,7 +48,33 @@ func TestIntegration(t *testing.T) {
 		})
 	})
 
-	t.Run("works correctly with subrouter - handles path prefix", func(t *testing.T) {
+	t.Run("router works correctly - echo", func(t *testing.T) {
+		echoRouter, _ := setupEchoSwagger(t)
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/hello", nil)
+
+		echoRouter.ServeHTTP(w, r)
+
+		require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+		body := readBody(t, w.Result().Body)
+		require.Equal(t, "OK", body)
+
+		t.Run("and generate swagger", func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, swagger.DefaultJSONDocumentationPath, nil)
+
+			echoRouter.ServeHTTP(w, r)
+
+			require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+			body := readBody(t, w.Result().Body)
+			require.Equal(t, "{\"components\":{},\"info\":{\"title\":\"test swagger title\",\"version\":\"test swagger version\"},\"openapi\":\"3.0.0\",\"paths\":{\"/hello\":{\"get\":{\"responses\":{\"default\":{\"description\":\"\"}}}}}}", body)
+		})
+	})
+
+	t.Run("works correctly with subrouter - handles path prefix - gorilla mux", func(t *testing.T) {
 		muxRouter, swaggerRouter := setupSwagger(t)
 
 		muxSubRouter := muxRouter.NewRoute().Subrouter()
@@ -56,7 +83,8 @@ func TestIntegration(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		subRouter.AddRoute(http.MethodGet, "/foo", okHandler, swagger.Definitions{})
+		_, err = subRouter.AddRoute(http.MethodGet, "/foo", okHandler, swagger.Definitions{})
+		require.NoError(t, err)
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/hello", nil)
@@ -85,6 +113,52 @@ func TestIntegration(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, swagger.DefaultJSONDocumentationPath, nil)
 
 			muxRouter.ServeHTTP(w, r)
+
+			require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+			body := readBody(t, w.Result().Body)
+			require.Equal(t, "{\"components\":{},\"info\":{\"title\":\"test swagger title\",\"version\":\"test swagger version\"},\"openapi\":\"3.0.0\",\"paths\":{\"/hello\":{\"get\":{\"responses\":{\"default\":{\"description\":\"\"}}}}}}", body)
+		})
+	})
+
+	t.Run("works correctly with subrouter - handles path prefix - echo", func(t *testing.T) {
+		eRouter, swaggerRouter := setupEchoSwagger(t)
+
+		subRouter, err := swaggerRouter.SubRouter(echoRouter{router: eRouter}, swagger.SubRouterOptions{
+			PathPrefix: "/prefix",
+		})
+		require.NoError(t, err)
+
+		_, err = subRouter.AddRoute(http.MethodGet, "/foo", okHandler, swagger.Definitions{})
+		require.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/hello", nil)
+
+		eRouter.ServeHTTP(w, r)
+
+		require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+		body := readBody(t, w.Result().Body)
+		require.Equal(t, "OK", body)
+
+		t.Run("correctly call sub router", func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/prefix/foo", nil)
+
+			eRouter.ServeHTTP(w, r)
+
+			require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+			body := readBody(t, w.Result().Body)
+			require.Equal(t, "OK", body)
+		})
+
+		t.Run("and generate swagger", func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, swagger.DefaultJSONDocumentationPath, nil)
+
+			eRouter.ServeHTTP(w, r)
 
 			require.Equal(t, http.StatusOK, w.Result().StatusCode)
 
@@ -134,4 +208,47 @@ func setupSwagger(t *testing.T) (*mux.Router, *swagger.Router) {
 func okHandler(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`OK`))
+}
+
+func setupEchoSwagger(t *testing.T) (*echo.Echo, *swagger.Router) {
+	t.Helper()
+
+	context := context.Background()
+	e := echo.New()
+
+	router, err := swagger.NewRouter(echoRouter{router: e}, swagger.Options{
+		Context: context,
+		Openapi: &openapi3.T{
+			Info: &openapi3.Info{
+				Title:   swaggerOpenapiTitle,
+				Version: swaggerOpenapiVersion,
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	operation := swagger.Operation{}
+
+	_, err = router.AddRawRoute(http.MethodGet, "/hello", func(w http.ResponseWriter, req *http.Request) {
+		ctx := e.NewContext(req, w)
+		echoOkHandler(ctx)
+	}, operation)
+	require.NoError(t, err)
+
+	err = router.GenerateAndExposeSwagger()
+	require.NoError(t, err)
+
+	return e, router
+}
+
+func echoOkHandler(c echo.Context) error {
+	return c.String(http.StatusOK, "OK")
+}
+
+type echoRouter struct {
+	router *echo.Echo
+}
+
+func (r echoRouter) AddRoute(method, path string, handler apirouter.HandlerFunc) apirouter.Route {
+	return r.router.Add(method, path, echo.WrapHandler(http.HandlerFunc(handler)))
 }
