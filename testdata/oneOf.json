@@ -70,7 +70,6 @@
                     "type": "string"
                   },
                   "metadata": {
-                    "additionalProperties": true,
                     "oneOf": [
                       {
                         "type": "string"

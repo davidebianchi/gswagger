@@ -6,9 +6,9 @@ import (
 	"path"
 	"sort"
 
-	"github.com/alecthomas/jsonschema"
 	"github.com/davidebianchi/gswagger/apirouter"
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/invopop/jsonschema"
 )
 
 var (
@@ -131,10 +131,11 @@ func (r Router) getSchemaFromInterface(v interface{}, allowAdditionalProperties 
 	reflector := &jsonschema.Reflector{
 		DoNotReference:            true,
 		AllowAdditionalProperties: allowAdditionalProperties,
+		Anonymous:                 true,
 	}
 
 	jsonSchema := reflector.Reflect(v)
-	jsonschema.Version = ""
+	jsonSchema.Version = ""
 	// Empty definitions. Definitions are not valid in openapi3, which use components.
 	// In the future, we could add an option to fill the components in openapi spec.
 	jsonSchema.Definitions = nil

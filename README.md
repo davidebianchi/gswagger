@@ -139,7 +139,7 @@ see the [tags on this repository](https://github.com/davidebianchi/gswagger/tags
 
 <!-- Reference -->
 [kin-openapi]: https://github.com/getkin/kin-openapi
-[jsonschema]: https://github.com/alecthomas/jsonschema
+[jsonschema]: https://github.com/invopop/jsonschemaa
 [github-actions]: https://github.com/davidebianchi/gswagger/actions
 [github-actions-svg]: https://github.com/davidebianchi/gswagger/workflows/Test%20and%20build/badge.svg
 [godoc-svg]: https://godoc.org/github.com/davidebianchi/gswagger?status.svg
