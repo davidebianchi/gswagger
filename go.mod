@@ -3,12 +3,12 @@ module github.com/davidebianchi/gswagger
 go 1.17
 
 require (
-	github.com/getkin/kin-openapi v0.92.0
+	github.com/getkin/kin-openapi v0.93.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-openapi/swag v0.21.1 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
-	github.com/invopop/jsonschema v0.3.0
+	github.com/invopop/jsonschema v0.4.0
 	github.com/labstack/echo/v4 v4.7.0
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/stretchr/testify v1.7.0
