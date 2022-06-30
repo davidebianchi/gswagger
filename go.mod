@@ -11,7 +11,7 @@ require (
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/stretchr/testify v1.7.5
+	github.com/stretchr/testify v1.8.0
 )
 
 require (
