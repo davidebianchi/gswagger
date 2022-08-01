@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/alecthomas/jsonschema v0.0.0-20210920000243-787cd8204a0d
-	github.com/getkin/kin-openapi v0.89.0
+	github.com/getkin/kin-openapi v0.98.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/gorilla/mux v1.8.0
@@ -17,6 +17,7 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
+	github.com/invopop/yaml v0.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
