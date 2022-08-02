@@ -149,7 +149,7 @@ func (r Router) GenerateAndExposeSwagger() error {
 	if err != nil {
 		return fmt.Errorf("%w yaml marshal: %s", ErrGenerateSwagger, err)
 	}
-	r.router.AddRoute(http.MethodGet,r.yamlDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
+	r.router.AddRoute(http.MethodGet, r.yamlDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
 		w.Write(yamlSwagger)

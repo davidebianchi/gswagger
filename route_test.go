@@ -590,8 +590,7 @@ func TestResolveRequestBodySchema(t *testing.T) {
 								"type":"object",
 								"properties": {
 									"id": {"type": "string"}
-								},
-								"additionalProperties": true
+								}
 							}
 						}
 					}

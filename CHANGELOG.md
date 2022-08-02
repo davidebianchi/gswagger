@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- change jsonschema lib to `invopop/jsonschema v0.5.0`. This updates remove the `additionalProperties: true` from all the schemas, as it is the default value
+
 ### BREAKING CHANGES
 
 - modified Router interface by sorting addRoute arguments in a different manner: first method and then path
@@ -27,6 +31,12 @@ type Router interface {
   AddRoute(method, path string, handler HandlerFunc) Route
 }
 ```
+
+### Updates
+
+- kin-openapi@v0.98.0
+- go-openapi/swag@v0.21.1
+- labstack/echo/v4@v4.7.2
 
 ## v0.3.0 - 10-11-2021
 

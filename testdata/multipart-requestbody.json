@@ -14,13 +14,11 @@
             "multipart/form-data": {
               "schema": {
                 "type": "object",
-                "additionalProperties": true,
                 "properties": {
                   "id": {
                     "type": "string"
                   },
                   "address": {
-                    "additionalProperties": true,
                     "type": "object",
                     "properties": {
                       "street": {
