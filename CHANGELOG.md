@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- change jsonschema lib to `invopop/jsonschema v0.3.0`. This updates remove the `additionalProperties: true` from all the schemas, as it is the default value
+- change jsonschema lib to `invopop/jsonschema v0.5.0`. This updates remove the `additionalProperties: true` from all the schemas, as it is the default value
 
 ### BREAKING CHANGES
 
@@ -34,9 +34,9 @@ type Router interface {
 
 ### Updates
 
-- kin-openapi@v0.92.0
+- kin-openapi@v0.98.0
 - go-openapi/swag@v0.21.1
-- labstack/echo/v4@v4.7.0
+- labstack/echo/v4@v4.7.2
 
 ## v0.3.0 - 10-11-2021
 
