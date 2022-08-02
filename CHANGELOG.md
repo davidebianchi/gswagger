@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.4.0 - 02-08-2022
+
 ### Changed
 
 - change jsonschema lib to `invopop/jsonschema v0.5.0`. This updates remove the `additionalProperties: true` from all the schemas, as it is the default value
