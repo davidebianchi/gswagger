@@ -101,7 +101,37 @@ operation.AddRequestBody(requestBody)
 router.AddRawRoute(http.MethodPost, "/cars", okHandler, operation)
 ```
 
-This configuration will output the schema shown [here](testdata/users_employees.json)
+This configuration will output the schema shown [here](testdata/users_employees.json).
+
+## Auto generated path params schema
+
+The path params, if not set in schema, are auto generated from the path. Currently, it is supported only the path params like `{myPath}`.
+
+For example, with this use case:
+
+```golang
+okHandler := func(w http.ResponseWriter, req *http.Request) {
+  w.WriteHeader(http.StatusOK)
+  w.Write([]byte("OK"))
+}
+
+_, err := router.AddRoute(http.MethodGet, "/users/{userId}", okHandler, Definitions{
+  Querystring: ParameterValue{
+    "query": {
+      Schema: &Schema{Value: ""},
+    },
+  },
+})
+require.NoError(t, err)
+
+_, err = router.AddRoute(http.MethodGet, "/cars/{carId}/drivers/{driverId}", okHandler, Definitions{})
+require.NoError(t, err)
+```
+
+The generated oas schema will contains `userId`, `carId` and `driverId` as path params set to string.
+If only one params is set, you must specify manually all the path params.
+
+The generated file for this test case is [here](./testdata/params-autofill.json).
 
 ## SubRouter
 

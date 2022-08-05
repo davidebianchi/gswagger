@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- path params are auto generated if not set
+
 ## v0.4.0 - 02-08-2022
 
 ### Changed
