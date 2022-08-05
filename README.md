@@ -128,7 +128,7 @@ _, err = router.AddRoute(http.MethodGet, "/cars/{carId}/drivers/{driverId}", okH
 require.NoError(t, err)
 ```
 
-The generated oas schema will contains `{userId}`, `{carId}` and `{driverId}` as path params set to string.
+The generated oas schema will contains `userId`, `carId` and `driverId` as path params set to string.
 If only one params is set, you must specify manually all the path params.
 
 The generated file for this test case is [here](./testdata/params-autofill.json).
