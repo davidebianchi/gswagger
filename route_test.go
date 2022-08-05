@@ -185,6 +185,24 @@ func TestAddRoutes(t *testing.T) {
 			fixturesPath: "testdata/params.json",
 		},
 		{
+			name: "schema without params autofilled",
+			routes: func(t *testing.T, router *Router) {
+				_, err := router.AddRoute(http.MethodGet, "/users/{userId}", okHandler, Definitions{
+					Querystring: ParameterValue{
+						"query": {
+							Schema: &Schema{Value: ""},
+						},
+					},
+				})
+				require.NoError(t, err)
+
+				_, err = router.AddRoute(http.MethodGet, "/cars/{carId}/drivers/{driverId}", okHandler, Definitions{})
+				require.NoError(t, err)
+			},
+			testPath:     "/users/12",
+			fixturesPath: "testdata/params-autofill.json",
+		},
+		{
 			name: "schema with querystring",
 			routes: func(t *testing.T, router *Router) {
 				_, err := router.AddRoute(http.MethodGet, "/projects", okHandler, Definitions{

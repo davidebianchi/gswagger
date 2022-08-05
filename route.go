@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path"
 	"sort"
+	"strings"
 
 	"github.com/davidebianchi/gswagger/apirouter"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -54,13 +55,15 @@ type Schema struct {
 	AllowAdditionalProperties bool
 }
 
-// ParameterValue is the struct containing the schema or the content information.
-// If content is specified, it takes precedence.
-type ParameterValue map[string]struct {
+type Parameter struct {
 	Content     Content
 	Schema      *Schema
 	Description string
 }
+
+// ParameterValue is the struct containing the schema or the content information.
+// If content is specified, it takes precedence.
+type ParameterValue map[string]Parameter
 
 // ContentValue is the struct containing the content information.
 type ContentValue struct {
@@ -100,7 +103,7 @@ func (r Router) AddRoute(method string, path string, handler apirouter.HandlerFu
 		return nil, fmt.Errorf("%w: %s", ErrResponses, err)
 	}
 
-	err = r.resolveParameterSchema(pathParamsType, schema.PathParams, operation)
+	err = r.resolveParameterSchema(pathParamsType, getPathParamsAutofilled(schema, path), operation)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrPathParams, err)
 	}
@@ -254,4 +257,23 @@ func (r Router) addContentToOASSchema(content Content) (openapi3.Content, error)
 		oasContent[k] = openapi3.NewMediaType().WithSchema(schema)
 	}
 	return oasContent, nil
+}
+
+func getPathParamsAutofilled(schema Definitions, path string) ParameterValue {
+	if schema.PathParams == nil {
+		pathParams := strings.Split(path, "/")
+		for _, param := range pathParams {
+			if strings.HasPrefix(param, "{") && strings.HasSuffix(param, "}") {
+				if schema.PathParams == nil {
+					schema.PathParams = make(ParameterValue)
+				}
+				param = strings.Replace(param, "{", "", 1)
+				param = strings.Replace(param, "}", "", 1)
+				schema.PathParams[param] = Parameter{
+					Schema: &Schema{Value: ""},
+				}
+			}
+		}
+	}
+	return schema.PathParams
 }
