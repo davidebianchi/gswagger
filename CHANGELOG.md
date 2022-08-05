@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.5.0 - 05-08-2022
+
 ### Added
 
 - path params are auto generated if not set
