@@ -73,12 +73,13 @@ type ContentValue struct {
 
 // Definitions of the route.
 type Definitions struct {
-	PathParams  ParameterValue
-	Querystring ParameterValue
-	Headers     ParameterValue
-	Cookies     ParameterValue
-	RequestBody *ContentValue
-	Responses   map[int]ContentValue
+	PathParams           ParameterValue
+	Querystring          ParameterValue
+	Headers              ParameterValue
+	Cookies              ParameterValue
+	RequestBody          *ContentValue
+	Responses            map[int]ContentValue
+	SecurityRequirements []openapi3.SecurityRequirement
 }
 
 const (
@@ -122,6 +123,8 @@ func (r Router) AddRoute(method string, path string, handler apirouter.HandlerFu
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrPathParams, err)
 	}
+
+	r.resolveSecurityRequirementsSchema(schema.SecurityRequirements, operation)
 
 	return r.AddRawRoute(method, path, handler, operation)
 }
@@ -195,7 +198,24 @@ func (r Router) resolveResponsesSchema(responses map[int]ContentValue, operation
 	return nil
 }
 
-func (r Router) resolveParameterSchema(paramType string, paramConfig ParameterValue, operation Operation) error {
+func (r Router) resolveSecurityRequirementsSchema(
+	securityRequirements []openapi3.SecurityRequirement,
+	operation Operation,
+) {
+	if operation.Security == nil {
+		operation.Security = openapi3.NewSecurityRequirements()
+	}
+
+	for _, securityRequirement := range securityRequirements {
+		operation.Security.With(securityRequirement)
+	}
+}
+
+func (r Router) resolveParameterSchema(
+	paramType string,
+	paramConfig ParameterValue,
+	operation Operation,
+) error {
 	var keys = make([]string, 0, len(paramConfig))
 	for k := range paramConfig {
 		keys = append(keys, k)

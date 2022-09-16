@@ -954,6 +954,54 @@ func TestResolveParametersSchema(t *testing.T) {
 	}
 }
 
+func TestResolveSecurityRequirementsSchema(t *testing.T) {
+	tests := []struct {
+		name                 string
+		securityRequirements []openapi3.SecurityRequirement
+		expectedJSON         string
+	}{
+		{
+			name:                 "nil",
+			securityRequirements: nil,
+			expectedJSON:         `{}`,
+		},
+		{
+			name: "one requirement",
+			securityRequirements: []openapi3.SecurityRequirement{
+				{
+					"apiKey": {},
+				},
+			},
+			expectedJSON: `{"responses":null,"security":[{"apiKey":[]}]}`,
+		},
+	}
+
+	mux := mux.NewRouter()
+	router, err := NewRouter(
+		apirouter.NewGorillaMuxRouter(mux), Options{
+			Openapi: getBaseSwagger(t),
+		},
+	)
+	require.NoError(t, err)
+
+	for _, test := range tests {
+		t.Run(
+			test.name, func(t *testing.T) {
+				operation := NewOperation()
+
+				router.resolveSecurityRequirementsSchema(
+					test.securityRequirements,
+					operation,
+				)
+
+				data, _ := operation.MarshalJSON()
+				jsonData := string(data)
+				require.JSONEq(t, test.expectedJSON, jsonData, "actual json data: %s", jsonData)
+			},
+		)
+	}
+}
+
 func getBaseSwagger(t *testing.T) *openapi3.T {
 	t.Helper()
 
