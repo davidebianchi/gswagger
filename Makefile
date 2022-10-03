@@ -17,7 +17,7 @@ test:
 
 .PHONY: version
 version:
-	sed -i.bck "s|## Unreleased|## ${VERSION} - ${NOW_DATE}|g" "CHANGELOG.md"
+	sed -i.bck "s|## Unreleased|## Unreleased\n\n## ${VERSION} - ${NOW_DATE}|g" "CHANGELOG.md"
 	rm -fr "CHANGELOG.md.bck"
 	git add "CHANGELOG.md"
 	git commit -m "Upgrade version to v${VERSION}"
