@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.6.0 - 04-11-2022
+
 ### Added
 
 - Tags support to `router.AddRoute` accepted definition
