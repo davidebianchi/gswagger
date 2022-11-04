@@ -422,6 +422,17 @@ func TestAddRoutes(t *testing.T) {
 			testMethod:   http.MethodPost,
 			fixturesPath: "testdata/oneOf.json",
 		},
+		{
+			name: "schema with tags",
+			routes: func(t *testing.T, router *Router) {
+				_, err := router.AddRoute(http.MethodGet, "/users", okHandler, Definitions{
+					Tags: []string{"Tag1", "Tag2"},
+				})
+				require.NoError(t, err)
+			},
+			testPath:     "/users",
+			fixturesPath: "testdata/tags.json",
+		},
 	}
 
 	for _, test := range tests {
