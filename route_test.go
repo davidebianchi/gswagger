@@ -333,7 +333,7 @@ func TestAddRoute(t *testing.T) {
 				body := readBody(t, w.Result().Body)
 				actual, err := ioutil.ReadFile(test.fixturesPath)
 				require.NoError(t, err)
-				t.Logf("Received body ***\n%s\n***", body)
+				t.Logf("Received body %s", body)
 				require.JSONEq(t, string(actual), body, "actual json data: %s", string(actual))
 			})
 		})

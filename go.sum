@@ -6,6 +6,7 @@ github.com/davidebianchi/gorilla-swagger v0.0.0-20201020072703-ae2b97fcdf00 h1:r
 github.com/davidebianchi/gorilla-swagger v0.0.0-20201020072703-ae2b97fcdf00/go.mod h1:IHZkxCBW8Ao2WlYcsidnVMwbZ6ZBVggSEORnEY4PGNw=
 github.com/getkin/kin-openapi v0.22.1 h1:ODA1olTp175o//NfHko/uCAAhwUSfm5P4+K52XvTg4w=
 github.com/getkin/kin-openapi v0.22.1/go.mod h1:WGRs2ZMM1Q8LR1QBEwUxC6RJEfaBcD0s+pcEVXFuAjw=
+github.com/getkin/kin-openapi v0.31.0 h1:FUFJeRzKmBwTVZkn8FlgY0g7BfO+l3HniKmx6ANTOhU=
 github.com/ghodss/yaml v1.0.0 h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/gorilla/mux v1.8.0 h1:i40aqfkR1h2SlN9hojwV5ZA91wcXFOvkdNIeFDP5koI=
