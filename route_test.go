@@ -8,12 +8,17 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/davidebianchi/gswagger/apirouter"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 )
 
-func TestAddRoute(t *testing.T) {
+const jsonType = "application/json"
+const formDataType = "multipart/form-data"
+
+func TestAddRoutes(t *testing.T) {
+
 	type User struct {
 		Name        string   `json:"name" jsonschema:"title=The user name,required" jsonschema_extras:"example=Jane"`
 		PhoneNumber int      `json:"phone" jsonschema:"title=mobile number of user"`
@@ -41,7 +46,7 @@ func TestAddRoute(t *testing.T) {
 	type UserProfileRequest struct {
 		FirstName string      `json:"firstName" jsonschema:"title=user first name"`
 		LastName  string      `json:"lastName" jsonschema:"title=user last name"`
-		Metadata  interface{} `json:"metadata,omitempty" jsonschema:"title=custom properties,oneof_type=string;array"`
+		Metadata  interface{} `json:"metadata,omitempty" jsonschema:"title=custom properties,oneof_type=string;number"`
 	}
 
 	okHandler := func(w http.ResponseWriter, req *http.Request) {
@@ -77,7 +82,7 @@ func TestAddRoute(t *testing.T) {
 				_, err := router.AddRoute(http.MethodPost, "/users", okHandler, Definitions{
 					RequestBody: &ContentValue{
 						Content: Content{
-							"application/json": {Value: User{}},
+							jsonType: {Value: User{}},
 						},
 					},
 					Responses: map[int]ContentValue{
@@ -88,7 +93,7 @@ func TestAddRoute(t *testing.T) {
 						},
 						401: {
 							Content: Content{
-								"application/json": {Value: &errorResponse{}},
+								jsonType: {Value: &errorResponse{}},
 							},
 							Description: "invalid request",
 						},
@@ -100,7 +105,7 @@ func TestAddRoute(t *testing.T) {
 					Responses: map[int]ContentValue{
 						200: {
 							Content: Content{
-								"application/json": {Value: &Users{}},
+								jsonType: {Value: &Users{}},
 							},
 						},
 					},
@@ -111,7 +116,7 @@ func TestAddRoute(t *testing.T) {
 					Responses: map[int]ContentValue{
 						200: {
 							Content: Content{
-								"application/json": {Value: &Employees{}},
+								jsonType: {Value: &Employees{}},
 							},
 						},
 					},
@@ -127,7 +132,7 @@ func TestAddRoute(t *testing.T) {
 				_, err := router.AddRoute(http.MethodPost, "/files", okHandler, Definitions{
 					RequestBody: &ContentValue{
 						Content: Content{
-							"multipart/form-data": {
+							formDataType: {
 								Value:                     &FormData{},
 								AllowAdditionalProperties: true,
 							},
@@ -137,7 +142,7 @@ func TestAddRoute(t *testing.T) {
 					Responses: map[int]ContentValue{
 						200: {
 							Content: Content{
-								"application/json": {
+								jsonType: {
 									Value: "",
 								},
 							},
@@ -178,6 +183,24 @@ func TestAddRoute(t *testing.T) {
 			},
 			testPath:     "/users/12",
 			fixturesPath: "testdata/params.json",
+		},
+		{
+			name: "schema without params autofilled",
+			routes: func(t *testing.T, router *Router) {
+				_, err := router.AddRoute(http.MethodGet, "/users/{userId}", okHandler, Definitions{
+					Querystring: ParameterValue{
+						"query": {
+							Schema: &Schema{Value: ""},
+						},
+					},
+				})
+				require.NoError(t, err)
+
+				_, err = router.AddRoute(http.MethodGet, "/cars/{carId}/drivers/{driverId}", okHandler, Definitions{})
+				require.NoError(t, err)
+			},
+			testPath:     "/users/12",
+			fixturesPath: "testdata/params-autofill.json",
 		},
 		{
 			name: "schema with querystring",
@@ -263,6 +286,95 @@ func TestAddRoute(t *testing.T) {
 			fixturesPath: "testdata/schema-no-content.json",
 		},
 		{
+			name: "allOf schema",
+			routes: func(t *testing.T, router *Router) {
+				schema := openapi3.NewAllOfSchema()
+				schema.AllOf = []*openapi3.SchemaRef{
+					{
+						Value: openapi3.NewFloat64Schema().
+							WithMin(1).
+							WithMax(2),
+					},
+					{
+						Value: openapi3.NewFloat64Schema().
+							WithMin(2).
+							WithMax(3),
+					},
+				}
+
+				request := openapi3.NewRequestBody().WithJSONSchema(schema)
+				response := openapi3.NewResponse().WithJSONSchema(schema)
+
+				allOperation := NewOperation()
+				allOperation.AddResponse(200, response)
+				allOperation.AddRequestBody(request)
+
+				_, err := router.AddRawRoute(http.MethodPost, "/all-of", okHandler, allOperation)
+				require.NoError(t, err)
+
+				nestedSchema := openapi3.NewSchema()
+				nestedSchema.Properties = map[string]*openapi3.SchemaRef{
+					"foo": {
+						Value: openapi3.NewStringSchema(),
+					},
+					"nested": {
+						Value: schema,
+					},
+				}
+				responseNested := openapi3.NewResponse().WithJSONSchema(nestedSchema)
+				nestedAllOfOperation := NewOperation()
+				nestedAllOfOperation.AddResponse(200, responseNested)
+
+				_, err = router.AddRawRoute(http.MethodGet, "/nested-schema", okHandler, nestedAllOfOperation)
+				require.NoError(t, err)
+			},
+			fixturesPath: "testdata/allof.json",
+		},
+		{
+			name: "anyOf schema",
+			routes: func(t *testing.T, router *Router) {
+				schema := openapi3.NewAnyOfSchema()
+				schema.AnyOf = []*openapi3.SchemaRef{
+					{
+						Value: openapi3.NewFloat64Schema().
+							WithMin(1).
+							WithMax(2),
+					},
+					{
+						Value: openapi3.NewFloat64Schema().
+							WithMin(2).
+							WithMax(3),
+					},
+				}
+				request := openapi3.NewRequestBody().WithJSONSchema(schema)
+				response := openapi3.NewResponse().WithJSONSchema(schema)
+
+				allOperation := NewOperation()
+				allOperation.AddResponse(200, response)
+				allOperation.AddRequestBody(request)
+
+				_, err := router.AddRawRoute(http.MethodPost, "/any-of", okHandler, allOperation)
+				require.NoError(t, err)
+
+				nestedSchema := openapi3.NewSchema()
+				nestedSchema.Properties = map[string]*openapi3.SchemaRef{
+					"foo": {
+						Value: openapi3.NewStringSchema(),
+					},
+					"nested": {
+						Value: schema,
+					},
+				}
+				responseNested := openapi3.NewResponse().WithJSONSchema(nestedSchema)
+				nestedAnyOfOperation := NewOperation()
+				nestedAnyOfOperation.AddResponse(200, responseNested)
+
+				_, err = router.AddRawRoute(http.MethodGet, "/nested-schema", okHandler, nestedAnyOfOperation)
+				require.NoError(t, err)
+			},
+			fixturesPath: "testdata/anyof.json",
+		},
+		{
 			name: "oneOf support on properties",
 			routes: func(t *testing.T, router *Router) {
 				_, err := router.AddRoute(http.MethodPost, "/user-profile", okHandler, Definitions{
@@ -282,6 +394,29 @@ func TestAddRoute(t *testing.T) {
 					},
 				})
 				require.NoError(t, err)
+
+				schema := openapi3.NewOneOfSchema()
+				schema.OneOf = []*openapi3.SchemaRef{
+					{
+						Value: openapi3.NewFloat64Schema().
+							WithMin(1).
+							WithMax(2),
+					},
+					{
+						Value: openapi3.NewFloat64Schema().
+							WithMin(2).
+							WithMax(3),
+					},
+				}
+				request := openapi3.NewRequestBody().WithJSONSchema(schema)
+				response := openapi3.NewResponse().WithJSONSchema(schema)
+
+				allOperation := NewOperation()
+				allOperation.AddResponse(200, response)
+				allOperation.AddRequestBody(request)
+
+				_, err = router.AddRawRoute(http.MethodPost, "/one-of", okHandler, allOperation)
+				require.NoError(t, err)
 			},
 			testPath:     "/user-profile",
 			testMethod:   http.MethodPost,
@@ -294,7 +429,7 @@ func TestAddRoute(t *testing.T) {
 			context := context.Background()
 			r := mux.NewRouter()
 
-			router, err := NewRouter(r, Options{
+			router, err := NewRouter(apirouter.NewGorillaMuxRouter(r), Options{
 				Context: context,
 				Openapi: getBaseSwagger(t),
 			})
@@ -324,17 +459,16 @@ func TestAddRoute(t *testing.T) {
 
 			t.Run("and generate swagger documentation in json", func(t *testing.T) {
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest(http.MethodGet, JSONDocumentationPath, nil)
+				req := httptest.NewRequest(http.MethodGet, DefaultJSONDocumentationPath, nil)
 
 				r.ServeHTTP(w, req)
 
 				require.Equal(t, http.StatusOK, w.Result().StatusCode)
 
 				body := readBody(t, w.Result().Body)
-				actual, err := ioutil.ReadFile(test.fixturesPath)
+				expected, err := ioutil.ReadFile(test.fixturesPath)
 				require.NoError(t, err)
-				t.Logf("Received body %s", body)
-				require.JSONEq(t, string(actual), body, "actual json data: %s", string(actual))
+				require.JSONEq(t, string(expected), body, "actual json data: %s", body)
 			})
 		})
 	}
@@ -360,7 +494,7 @@ func TestResolveRequestBodySchema(t *testing.T) {
 			expectedErr: nil,
 			bodySchema: &ContentValue{
 				Content: Content{
-					"multipart/form-data": {
+					formDataType: {
 						Value: &TestStruct{},
 					},
 				},
@@ -387,7 +521,7 @@ func TestResolveRequestBodySchema(t *testing.T) {
 			expectedErr: nil,
 			bodySchema: &ContentValue{
 				Content: Content{
-					"application/json": {Value: &TestStruct{}},
+					jsonType: {Value: &TestStruct{}},
 				},
 			},
 			expectedJSON: `{
@@ -412,7 +546,7 @@ func TestResolveRequestBodySchema(t *testing.T) {
 			expectedErr: nil,
 			bodySchema: &ContentValue{
 				Content: Content{
-					"application/json": {
+					jsonType: {
 						Value: &TestStruct{},
 					},
 				},
@@ -474,8 +608,7 @@ func TestResolveRequestBodySchema(t *testing.T) {
 								"type":"object",
 								"properties": {
 									"id": {"type": "string"}
-								},
-								"additionalProperties": true
+								}
 							}
 						}
 					}
@@ -486,14 +619,14 @@ func TestResolveRequestBodySchema(t *testing.T) {
 	}
 
 	mux := mux.NewRouter()
-	router, err := NewRouter(mux, Options{
+	router, err := NewRouter(apirouter.NewGorillaMuxRouter(mux), Options{
 		Openapi: getBaseSwagger(t),
 	})
 	require.NoError(t, err)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			operation := openapi3.NewOperation()
+			operation := NewOperation()
 
 			err := router.resolveRequestBodySchema(test.bodySchema, operation)
 
@@ -528,7 +661,7 @@ func TestResolveResponsesSchema(t *testing.T) {
 			responsesSchema: map[int]ContentValue{
 				200: {
 					Content: Content{
-						"application/json": {Value: &TestStruct{}},
+						jsonType: {Value: &TestStruct{}},
 					},
 				},
 			},
@@ -559,12 +692,12 @@ func TestResolveResponsesSchema(t *testing.T) {
 			responsesSchema: map[int]ContentValue{
 				200: {
 					Content: Content{
-						"application/json": {Value: &TestStruct{}},
+						jsonType: {Value: &TestStruct{}},
 					},
 				},
 				400: {
 					Content: Content{
-						"application/json": {Value: ""},
+						jsonType: {Value: ""},
 					},
 				},
 			},
@@ -605,7 +738,7 @@ func TestResolveResponsesSchema(t *testing.T) {
 			responsesSchema: map[int]ContentValue{
 				400: {
 					Content: Content{
-						"application/json": {Value: ""},
+						jsonType: {Value: ""},
 					},
 					Description: "a description",
 				},
@@ -629,14 +762,14 @@ func TestResolveResponsesSchema(t *testing.T) {
 	}
 
 	mux := mux.NewRouter()
-	router, err := NewRouter(mux, Options{
+	router, err := NewRouter(apirouter.NewGorillaMuxRouter(mux), Options{
 		Openapi: getBaseSwagger(t),
 	})
 	require.NoError(t, err)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			operation := openapi3.NewOperation()
+			operation := NewOperation()
 			operation.Responses = make(openapi3.Responses)
 
 			err := router.resolveResponsesSchema(test.responsesSchema, operation)
@@ -771,7 +904,7 @@ func TestResolveParametersSchema(t *testing.T) {
 			paramsSchema: ParameterValue{
 				"foo": {
 					Content: Content{
-						"application/json": {
+						jsonType: {
 							Value: &TestStruct{},
 						},
 					},
@@ -799,14 +932,14 @@ func TestResolveParametersSchema(t *testing.T) {
 	}
 
 	mux := mux.NewRouter()
-	router, err := NewRouter(mux, Options{
+	router, err := NewRouter(apirouter.NewGorillaMuxRouter(mux), Options{
 		Openapi: getBaseSwagger(t),
 	})
 	require.NoError(t, err)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			operation := openapi3.NewOperation()
+			operation := NewOperation()
 
 			err := router.resolveParameterSchema(test.paramType, test.paramsSchema, operation)
 
@@ -821,13 +954,13 @@ func TestResolveParametersSchema(t *testing.T) {
 	}
 }
 
-func getBaseSwagger(t *testing.T) *openapi3.Swagger {
+func getBaseSwagger(t *testing.T) *openapi3.T {
 	t.Helper()
 
-	return &openapi3.Swagger{
+	return &openapi3.T{
 		Info: &openapi3.Info{
-			Title:   swaggerOpenapiTitle,
-			Version: swaggerOpenapiVersion,
+			Title:   "test swagger title",
+			Version: "test swagger version",
 		},
 	}
 }

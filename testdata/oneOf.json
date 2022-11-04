@@ -6,6 +6,56 @@
   },
   "openapi": "3.0.0",
   "paths": {
+<<<<<<< HEAD
+=======
+    "/one-of": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "maximum": 2,
+                    "minimum": 1,
+                    "type": "number"
+                  },
+                  {
+                    "maximum": 3,
+                    "minimum": 2,
+                    "type": "number"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "maximum": 2,
+                      "minimum": 1,
+                      "type": "number"
+                    },
+                    {
+                      "maximum": 3,
+                      "minimum": 2,
+                      "type": "number"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
+>>>>>>> main
     "/user-profile": {
       "post": {
         "requestBody": {
@@ -23,6 +73,7 @@
                     "type": "string"
                   },
                   "metadata": {
+<<<<<<< HEAD
                     "additionalProperties": true,
                     "oneOf": [{
                       "type": "string"
@@ -33,6 +84,23 @@
                   }
                 },
                 "required": ["firstName", "lastName"],
+=======
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "title": "custom properties"
+                  }
+                },
+                "required": [
+                  "firstName",
+                  "lastName"
+                ],
+>>>>>>> main
                 "type": "object"
               }
             }

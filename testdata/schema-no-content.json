@@ -32,6 +32,7 @@
           }
         ],
         "requestBody": {
+          "content": {},
           "description": "request body without schema"
         },
         "responses": {
