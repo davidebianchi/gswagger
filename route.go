@@ -73,6 +73,7 @@ type ContentValue struct {
 
 // Definitions of the route.
 type Definitions struct {
+	Tags        []string
 	PathParams  ParameterValue
 	Querystring ParameterValue
 	Headers     ParameterValue
@@ -92,6 +93,7 @@ const (
 func (r Router) AddRoute(method string, path string, handler apirouter.HandlerFunc, schema Definitions) (interface{}, error) {
 	operation := NewOperation()
 	operation.Responses = make(openapi3.Responses)
+	operation.Tags = schema.Tags
 
 	err := r.resolveRequestBodySchema(schema.RequestBody, operation)
 	if err != nil {
