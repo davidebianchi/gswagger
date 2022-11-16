@@ -656,6 +656,14 @@ func TestResolveResponsesSchema(t *testing.T) {
 	type TestStruct struct {
 		Message string `json:"message,omitempty"`
 	}
+	type NestedTestStruct struct {
+		Notification       string                `json:"notification"`
+		NestedMapOfStructs map[string]TestStruct `json:"nestedMapOfStructs,omitempty"`
+	}
+	type ComplexTestStruct struct {
+		Communication string                      `json:"communication"`
+		MapOfStructs  map[string]NestedTestStruct `json:"mapOfStructs,omitempty"`
+	}
 	tests := []struct {
 		name            string
 		responsesSchema map[int]ContentValue
@@ -697,6 +705,79 @@ func TestResolveResponsesSchema(t *testing.T) {
 					}
 				}
 			}`,
+		},
+		{
+			name: "with complex schema",
+			responsesSchema: map[int]ContentValue{
+				200: {
+					Content: Content{
+						jsonType: {Value: &ComplexTestStruct{
+							Communication: "myCommunication",
+							MapOfStructs: map[string]NestedTestStruct{
+								"myProperty": {
+									Notification: "myNotification",
+									NestedMapOfStructs: map[string]TestStruct{
+										"myNestedProperty": {
+											Message: "myMessage",
+										},
+									},
+								},
+							},
+						}},
+					},
+				},
+			},
+			expectedErr: nil,
+			expectedJSON: `{
+				"responses": {
+				  "200": {
+					"content": {
+					  "application/json": {
+						"schema": {
+						  "additionalProperties": false,
+						  "properties": {
+							"communication": {
+							  "type": "string"
+							},
+							"mapOfStructs": {
+							  "additionalProperties": {
+								"additionalProperties": false,
+								"properties": {
+								  "nestedMapOfStructs": {
+									"additionalProperties": {
+									  "additionalProperties": false,
+									  "properties": {
+										"message": {
+										  "type": "string"
+										}
+									  },
+									  "type": "object"
+									},
+									"type": "object"
+								  },
+								  "notification": {
+									"type": "string"
+								  }
+								},
+								"required": [
+								  "notification"
+								],
+								"type": "object"
+							  },
+							  "type": "object"
+							}
+						  },
+						  "required": [
+							"communication"
+						  ],
+						  "type": "object"
+						}
+					  }
+					},
+					"description": ""
+				  }
+				}
+			  }`,
 		},
 		{
 			name: "with more status codes",
