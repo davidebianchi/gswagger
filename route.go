@@ -9,7 +9,7 @@ import (
 
 	"github.com/davidebianchi/gswagger/apirouter"
 	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/invopop/jsonschema"
+	"github.com/mia-platform/jsonschema"
 )
 
 var (
