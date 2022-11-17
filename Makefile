@@ -13,7 +13,6 @@ all: test
 .PHONY: test
 test:
 	go test ./... -coverprofile coverage.out
-	$(MAKE) clean
 
 .PHONY: version
 version:

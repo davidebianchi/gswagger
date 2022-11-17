@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -229,7 +229,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		require.True(t, strings.Contains(w.Result().Header.Get("content-type"), "application/json"))
 
 		body := readBody(t, w.Result().Body)
-		actual, err := ioutil.ReadFile("testdata/users_employees.json")
+		actual, err := os.ReadFile("testdata/users_employees.json")
 		require.NoError(t, err)
 		require.JSONEq(t, string(actual), body)
 	})
@@ -257,7 +257,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		require.True(t, strings.Contains(w.Result().Header.Get("content-type"), "application/json"))
 
 		body := readBody(t, w.Result().Body)
-		actual, err := ioutil.ReadFile("testdata/users_employees.json")
+		actual, err := os.ReadFile("testdata/users_employees.json")
 		require.NoError(t, err)
 		require.JSONEq(t, string(actual), body)
 	})
@@ -284,7 +284,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		require.True(t, strings.Contains(w.Result().Header.Get("content-type"), "text/plain"))
 
 		body := readBody(t, w.Result().Body)
-		expected, err := ioutil.ReadFile("testdata/users_employees.yaml")
+		expected, err := os.ReadFile("testdata/users_employees.yaml")
 		require.NoError(t, err)
 		require.YAMLEq(t, string(expected), body, string(body))
 	})
@@ -312,7 +312,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		require.True(t, strings.Contains(w.Result().Header.Get("content-type"), "text/plain"))
 
 		body := readBody(t, w.Result().Body)
-		expected, err := ioutil.ReadFile("testdata/users_employees.yaml")
+		expected, err := os.ReadFile("testdata/users_employees.yaml")
 		require.NoError(t, err)
 		require.YAMLEq(t, string(expected), body, string(body))
 	})
@@ -367,7 +367,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		require.True(t, strings.Contains(w.Result().Header.Get("content-type"), "application/json"))
 
 		body := readBody(t, w.Result().Body)
-		actual, err := ioutil.ReadFile("testdata/subrouter.json")
+		actual, err := os.ReadFile("testdata/subrouter.json")
 		require.NoError(t, err)
 		require.JSONEq(t, string(actual), body)
 	})
@@ -403,7 +403,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		require.True(t, strings.Contains(w.Result().Header.Get("content-type"), "application/json"))
 
 		body := readBody(t, w.Result().Body)
-		actual, err := ioutil.ReadFile("testdata/router_with_prefix.json")
+		actual, err := os.ReadFile("testdata/router_with_prefix.json")
 		require.NoError(t, err)
 		require.JSONEq(t, string(actual), body)
 	})
@@ -412,7 +412,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 func readBody(t *testing.T, requestBody io.ReadCloser) string {
 	t.Helper()
 
-	body, err := ioutil.ReadAll(requestBody)
+	body, err := io.ReadAll(requestBody)
 	require.NoError(t, err)
 
 	return string(body)

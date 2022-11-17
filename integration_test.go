@@ -3,7 +3,6 @@ package swagger_test
 import (
 	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -171,7 +170,7 @@ func TestIntegration(t *testing.T) {
 func readBody(t *testing.T, requestBody io.ReadCloser) string {
 	t.Helper()
 
-	body, err := ioutil.ReadAll(requestBody)
+	body, err := io.ReadAll(requestBody)
 	require.NoError(t, err)
 
 	return string(body)
