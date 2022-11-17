@@ -3,9 +3,9 @@ package swagger
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/davidebianchi/gswagger/apirouter"
@@ -477,7 +477,7 @@ func TestAddRoutes(t *testing.T) {
 				require.Equal(t, http.StatusOK, w.Result().StatusCode)
 
 				body := readBody(t, w.Result().Body)
-				expected, err := ioutil.ReadFile(test.fixturesPath)
+				expected, err := os.ReadFile(test.fixturesPath)
 				require.NoError(t, err)
 				require.JSONEq(t, string(expected), body, "actual json data: %s", body)
 			})
