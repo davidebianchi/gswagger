@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.6.1 - 17-11-2022
+
 ### Changed
 
 - change jsonschema lib to `mia-platform/jsonschema v0.1.0`. This update removes the `patternProperties` with `additionalProperties` from all schemas
