@@ -16,6 +16,7 @@ It works with any router which support handler net/http HandlerFunc compatible.
 The routers supported out of the box are:
 
 - [gorilla-mux](https://github.com/gorilla/mux)
+- [fiber](https://github.com/gofiber/fiber)
 
 This lib uses [kin-openapi] to automatically generate and serve a swagger file.
 

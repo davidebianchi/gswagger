@@ -5,4 +5,4 @@ type Router[HandlerFunc any] interface {
 	SwaggerHandler(contentType string, blob []byte) HandlerFunc
 }
 
-type Route interface{}
+type Route any

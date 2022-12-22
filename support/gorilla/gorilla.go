@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Handler is the http type handler
+// HandlerFunc is the http type handler used by gorilla/mux
 type HandlerFunc func(w http.ResponseWriter, req *http.Request)
 
 type gorillaRouter struct {
