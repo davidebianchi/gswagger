@@ -11,12 +11,13 @@
 
 Generate an openapi spec dynamically based on the types used to handle request and response.
 
-It works with any router which support handler net/http HandlerFunc compatible.
+It works with any router, it is simple to add support to your users implementing the [apirouter](apirouter/router.go) interface.
 
 The routers supported out of the box are:
 
 - [gorilla-mux](https://github.com/gorilla/mux)
 - [fiber](https://github.com/gofiber/fiber)
+- [echo](https://echo.labstack.com/)
 
 This lib uses [kin-openapi] to automatically generate and serve a swagger file.
 
@@ -26,15 +27,13 @@ It is always possible to add a totally custom swagger schema using [kin-openapi]
 
 ## Usage
 
-To add a router not handled out of the box, it must implements the [Router interface](./apirouter/router.go).
-
 An example usage of this lib with gorilla mux:
 
 ```go
 context := context.Background()
 muxRouter := mux.NewRouter()
 
-router, err := swagger.NewRouter(apirouter.NewGorillaMuxRouter(muxRouter), swagger.Options{
+router, _ := swagger.NewRouter(gorilla.NewRouter(muxRouter), swagger.Options{
   Context: context,
   Openapi: &openapi3.T{
     Info: &openapi3.Info{
@@ -55,7 +54,6 @@ type User struct {
   Groups      []string `json:"groups,omitempty" jsonschema:"title=groups of the user,default=users"`
   Address     string   `json:"address" jsonschema:"title=user address"`
 }
-type Users []User
 type errorResponse struct {
   Message string `json:"message"`
 }
@@ -100,39 +98,22 @@ operation := swagger.NewOperation()
 operation.AddRequestBody(requestBody)
 
 router.AddRawRoute(http.MethodPost, "/cars", okHandler, operation)
+
+router.GenerateAndExposeSwagger()
 ```
 
-This configuration will output the schema shown [here](testdata/users_employees.json).
+This configuration will output the schema shown [here](./support/gorilla/testdata/examples-users.json).
 
 ## Auto generated path params schema
 
 The path params, if not set in schema, are auto generated from the path. Currently, it is supported only the path params like `{myPath}`.
 
-For example, with this use case:
-
-```golang
-okHandler := func(w http.ResponseWriter, req *http.Request) {
-  w.WriteHeader(http.StatusOK)
-  w.Write([]byte("OK"))
-}
-
-_, err := router.AddRoute(http.MethodGet, "/users/{userId}", okHandler, Definitions{
-  Querystring: ParameterValue{
-    "query": {
-      Schema: &Schema{Value: ""},
-    },
-  },
-})
-require.NoError(t, err)
-
-_, err = router.AddRoute(http.MethodGet, "/cars/{carId}/drivers/{driverId}", okHandler, Definitions{})
-require.NoError(t, err)
-```
+For example, with this use case, you can see the [example test](./support/gorilla/examples_test.go).
 
 The generated oas schema will contains `userId`, `carId` and `driverId` as path params set to string.
 If only one params is set, you must specify manually all the path params.
 
-The generated file for this test case is [here](./testdata/params-autofill.json).
+The generated OAS for this test case is visible [here](./support/gorilla/testdata/examples-users.json).
 
 ## SubRouter
 
@@ -141,7 +122,7 @@ It is possible to add a prefix to all the routes created under the specific rout
 
 It could also be useful if you need a sub router to create a group of APIs which use the same middleware (for example,this could be achieved by the SubRouter features of gorilla mux, for example).
 
-To see the SubRouter example, please see the [SubRouter test](./integration_test.go).
+To see the SubRouter example, please see the integration test of one of the supported routers.
 
 ### FAQ
 
