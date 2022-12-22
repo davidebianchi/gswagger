@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+This is a big major release. The main achievement is to increase the usability of this library to all the routers.
+Below are listed the breaking changes you should care when update the version.
+
 ### BREAKING CHANGES
 
 - `apirouter.NewGorillaMuxRouter` is now `gorilla.NewRouter` (exposed by package `github.com/davidebianchi/gswagger/support/gorilla`).
