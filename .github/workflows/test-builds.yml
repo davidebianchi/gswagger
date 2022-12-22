@@ -12,7 +12,7 @@ jobs:
         go_version: [1.16, 1.17, 1.18, 1.19]
         os: [ubuntu-latest]
         include:
-        - go_version: 1.17
+        - go_version: 1.19
           os: macos-latest
     steps:
       - uses: actions/checkout@v1
