@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - support to different types of routers
 - add fiber support
+- add echo support
 
 ## 0.6.1 - 17-11-2022
 
