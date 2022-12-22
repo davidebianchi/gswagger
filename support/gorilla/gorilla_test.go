@@ -45,7 +45,7 @@ func TestGorillaMuxRouter(t *testing.T) {
 		})
 	})
 
-	t.Run("create swagger handler", func(t *testing.T) {
+	t.Run("create openapi handler", func(t *testing.T) {
 		handlerFunc := ar.SwaggerHandler("text/html", []byte("some data"))
 		muxRouter.HandleFunc("/oas", handlerFunc).Methods(http.MethodGet)
 

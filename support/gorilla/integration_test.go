@@ -19,7 +19,7 @@ const (
 	swaggerOpenapiVersion = "test swagger version"
 )
 
-type GorillaSwaggerRouter = swagger.Router[gorilla.HandlerFunc, gorilla.Route]
+type SwaggerRouter = swagger.Router[gorilla.HandlerFunc, gorilla.Route]
 
 func TestGorillaIntegration(t *testing.T) {
 	t.Run("router works correctly", func(t *testing.T) {
@@ -105,7 +105,7 @@ func readBody(t *testing.T, requestBody io.ReadCloser) string {
 	return string(body)
 }
 
-func setupSwagger(t *testing.T) (*mux.Router, *GorillaSwaggerRouter) {
+func setupSwagger(t *testing.T) (*mux.Router, *SwaggerRouter) {
 	t.Helper()
 
 	context := context.Background()
@@ -127,7 +127,7 @@ func setupSwagger(t *testing.T) (*mux.Router, *GorillaSwaggerRouter) {
 	_, err = router.AddRawRoute(http.MethodGet, "/hello", okHandler, operation)
 	require.NoError(t, err)
 
-	err = router.GenerateAndExposeSwagger()
+	err = router.GenerateAndExposeOpenapi()
 	require.NoError(t, err)
 
 	return muxRouter, router

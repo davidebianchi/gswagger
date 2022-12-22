@@ -98,7 +98,7 @@ func TestExample(t *testing.T) {
 	_, err = router.AddRoute(http.MethodGet, "/cars/{carId}/drivers/{driverId}", okHandler, swagger.Definitions{})
 	require.NoError(t, err)
 
-	router.GenerateAndExposeSwagger()
+	router.GenerateAndExposeOpenapi()
 
 	t.Run("correctly exposes documentation", func(t *testing.T) {
 		w := httptest.NewRecorder()

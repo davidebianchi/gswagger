@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/davidebianchi/gswagger/apirouter"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 )
@@ -42,7 +43,7 @@ func TestFiberRouterSupport(t *testing.T) {
 		})
 	})
 
-	t.Run("create swagger handler", func(t *testing.T) {
+	t.Run("create openapi handler", func(t *testing.T) {
 		handlerFunc := ar.SwaggerHandler("text/html", []byte("some data"))
 		fiberRouter.Get("/oas", handlerFunc)
 

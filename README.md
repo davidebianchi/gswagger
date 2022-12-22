@@ -11,7 +11,7 @@
 
 Generate an openapi spec dynamically based on the types used to handle request and response.
 
-It works with any router, it is simple to add support to your users implementing the [apirouter](apirouter/router.go) interface.
+It works with any router, it is simple to add support to your router implementing the [apirouter](apirouter/router.go) interface.
 
 The routers supported out of the box are:
 
@@ -99,7 +99,7 @@ operation.AddRequestBody(requestBody)
 
 router.AddRawRoute(http.MethodPost, "/cars", okHandler, operation)
 
-router.GenerateAndExposeSwagger()
+router.GenerateAndExposeOpenapi()
 ```
 
 This configuration will output the schema shown [here](./support/gorilla/testdata/examples-users.json).

@@ -122,7 +122,7 @@ func TestGenerateValidSwagger(t *testing.T) {
 	t.Run("not ok - empty swagger info", func(t *testing.T) {
 		swagger := &openapi3.T{}
 
-		swagger, err := generateNewValidSwagger(swagger)
+		swagger, err := generateNewValidOpenapi(swagger)
 		require.Nil(t, swagger)
 		require.EqualError(t, err, "swagger info is required")
 	})
@@ -132,7 +132,7 @@ func TestGenerateValidSwagger(t *testing.T) {
 			Info: &openapi3.Info{},
 		}
 
-		swagger, err := generateNewValidSwagger(swagger)
+		swagger, err := generateNewValidOpenapi(swagger)
 		require.Nil(t, swagger)
 		require.EqualError(t, err, "swagger info title is required")
 	})
@@ -144,7 +144,7 @@ func TestGenerateValidSwagger(t *testing.T) {
 			},
 		}
 
-		swagger, err := generateNewValidSwagger(swagger)
+		swagger, err := generateNewValidOpenapi(swagger)
 		require.Nil(t, swagger)
 		require.EqualError(t, err, "swagger info version is required")
 	})
@@ -154,13 +154,13 @@ func TestGenerateValidSwagger(t *testing.T) {
 			Info: &openapi3.Info{},
 		}
 
-		swagger, err := generateNewValidSwagger(swagger)
+		swagger, err := generateNewValidOpenapi(swagger)
 		require.Nil(t, swagger)
 		require.EqualError(t, err, "swagger info title is required")
 	})
 
 	t.Run("not ok - swagger is required", func(t *testing.T) {
-		swagger, err := generateNewValidSwagger(nil)
+		swagger, err := generateNewValidOpenapi(nil)
 		require.Nil(t, swagger)
 		require.EqualError(t, err, "swagger is required")
 	})
@@ -174,7 +174,7 @@ func TestGenerateValidSwagger(t *testing.T) {
 			Info: info,
 		}
 
-		swagger, err := generateNewValidSwagger(swagger)
+		swagger, err := generateNewValidOpenapi(swagger)
 		require.NoError(t, err)
 		require.Equal(t, &openapi3.T{
 			OpenAPI: defaultOpenapiVersion,
@@ -202,7 +202,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		err = router.GenerateAndExposeSwagger()
+		err = router.GenerateAndExposeOpenapi()
 		require.Error(t, err)
 		require.True(t, strings.HasPrefix(err.Error(), fmt.Sprintf("%s:", ErrValidatingSwagger)))
 	})
@@ -218,7 +218,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		err = router.GenerateAndExposeSwagger()
+		err = router.GenerateAndExposeOpenapi()
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -246,7 +246,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		err = router.GenerateAndExposeSwagger()
+		err = router.GenerateAndExposeOpenapi()
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -273,7 +273,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		err = router.GenerateAndExposeSwagger()
+		err = router.GenerateAndExposeOpenapi()
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -301,7 +301,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		err = router.GenerateAndExposeSwagger()
+		err = router.GenerateAndExposeOpenapi()
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -356,7 +356,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 			require.NoError(t, err)
 		})
 
-		err = router.GenerateAndExposeSwagger()
+		err = router.GenerateAndExposeOpenapi()
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()
@@ -392,7 +392,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 			w.Write([]byte("ok"))
 		}, Definitions{})
 
-		err = router.GenerateAndExposeSwagger()
+		err = router.GenerateAndExposeOpenapi()
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()

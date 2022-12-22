@@ -452,7 +452,7 @@ func TestAddRoutes(t *testing.T) {
 			// Add routes to test
 			test.routes(t, router)
 
-			err = router.GenerateAndExposeSwagger()
+			err = router.GenerateAndExposeOpenapi()
 			require.NoError(t, err)
 
 			if test.testPath != "" {

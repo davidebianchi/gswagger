@@ -127,7 +127,7 @@ func setupEchoSwagger(t *testing.T) (*echo.Echo, *echoSwaggerRouter) {
 	_, err = router.AddRawRoute(http.MethodGet, "/hello", okHandler, operation)
 	require.NoError(t, err)
 
-	err = router.GenerateAndExposeSwagger()
+	err = router.GenerateAndExposeOpenapi()
 	require.NoError(t, err)
 
 	return e, router

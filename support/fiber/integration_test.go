@@ -128,7 +128,7 @@ func setupSwagger(t *testing.T) (*fiber.App, *SwaggerRouter) {
 	_, err = router.AddRawRoute(http.MethodGet, "/hello", okHandler, operation)
 	require.NoError(t, err)
 
-	err = router.GenerateAndExposeSwagger()
+	err = router.GenerateAndExposeOpenapi()
 	require.NoError(t, err)
 
 	return fiberRouter, router
