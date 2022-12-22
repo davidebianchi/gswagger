@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - now it accept a generics `HandlerFunc` to define the handler function
   - add method `SwaggerHandler(contentType string, json []byte) HandlerFunc`
 - `NewRouter` function now accept `HandlerFunc` as generics
+- drop support to golang <= 1.17
 
 ### Feature
 
