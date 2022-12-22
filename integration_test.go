@@ -21,6 +21,9 @@ const (
 	swaggerOpenapiVersion = "test swagger version"
 )
 
+type GorillaSwaggerRouter = swagger.Router[gorilla.HandlerFunc]
+type echoSwaggerRouter = swagger.Router[http.HandlerFunc]
+
 func TestIntegration(t *testing.T) {
 	t.Run("router works correctly", func(t *testing.T) {
 		muxRouter, _ := setupSwagger(t)
@@ -177,7 +180,7 @@ func readBody(t *testing.T, requestBody io.ReadCloser) string {
 	return string(body)
 }
 
-func setupSwagger(t *testing.T) (*mux.Router, *swagger.Router) {
+func setupSwagger(t *testing.T) (*mux.Router, *GorillaSwaggerRouter) {
 	t.Helper()
 
 	context := context.Background()
@@ -210,13 +213,13 @@ func okHandler(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte(`OK`))
 }
 
-func setupEchoSwagger(t *testing.T) (*echo.Echo, *swagger.Router) {
+func setupEchoSwagger(t *testing.T) (*echo.Echo, *echoSwaggerRouter) {
 	t.Helper()
 
 	context := context.Background()
 	e := echo.New()
 
-	router, err := swagger.NewRouter(echoRouter{router: e}, swagger.Options{
+	router, err := swagger.NewRouter(newEchoRouter(e), swagger.Options{
 		Context: context,
 		Openapi: &openapi3.T{
 			Info: &openapi3.Info{
@@ -245,10 +248,22 @@ func echoOkHandler(c echo.Context) error {
 	return c.String(http.StatusOK, "OK")
 }
 
+func newEchoRouter(e *echo.Echo) apirouter.Router[http.HandlerFunc] {
+	return echoRouter{router: e}
+}
+
 type echoRouter struct {
 	router *echo.Echo
 }
 
-func (r echoRouter) AddRoute(method, path string, handler apirouter.HandlerFunc) apirouter.Route {
+func (r echoRouter) AddRoute(method, path string, handler http.HandlerFunc) apirouter.Route {
 	return r.router.Add(method, path, echo.WrapHandler(http.HandlerFunc(handler)))
+}
+
+func (r echoRouter) SwaggerHandler(contentType string, blob []byte) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", contentType)
+		w.WriteHeader(http.StatusOK)
+		w.Write(blob)
+	}
 }

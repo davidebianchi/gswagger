@@ -1,6 +1,7 @@
 package gorilla
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,7 +16,7 @@ func TestGorillaMuxRouter(t *testing.T) {
 	ar := NewRouter(muxRouter)
 
 	t.Run("create a new api router", func(t *testing.T) {
-		require.Implements(t, (*apirouter.Router)(nil), ar)
+		require.Implements(t, (*apirouter.Router[HandlerFunc])(nil), ar)
 	})
 
 	t.Run("add new route", func(t *testing.T) {
@@ -43,6 +44,25 @@ func TestGorillaMuxRouter(t *testing.T) {
 			muxRouter.ServeHTTP(w, r)
 
 			require.Equal(t, http.StatusMethodNotAllowed, w.Result().StatusCode)
+		})
+	})
+
+	t.Run("create swagger handler", func(t *testing.T) {
+		handlerFunc := ar.SwaggerHandler("text/html", []byte("some data"))
+		muxRouter.HandleFunc("/oas", handlerFunc).Methods(http.MethodGet)
+
+		t.Run("responds correctly to the API", func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/oas", nil)
+
+			muxRouter.ServeHTTP(w, r)
+
+			require.Equal(t, http.StatusOK, w.Result().StatusCode)
+			require.Equal(t, "text/html", w.Result().Header.Get("Content-Type"))
+
+			body, err := io.ReadAll(w.Result().Body)
+			require.NoError(t, err)
+			require.Equal(t, "some data", string(body))
 		})
 	})
 }

@@ -30,8 +30,8 @@ const (
 // Router handle the api router and the swagger schema.
 // api router supported out of the box are:
 // - gorilla mux
-type Router struct {
-	router                apirouter.Router
+type Router[T any] struct {
+	router                apirouter.Router[T]
 	swaggerSchema         *openapi3.T
 	context               context.Context
 	jsonDocumentationPath string
@@ -52,7 +52,7 @@ type Options struct {
 }
 
 // NewRouter generate new router with swagger. Default to OpenAPI 3.0.0
-func NewRouter(router apirouter.Router, options Options) (*Router, error) {
+func NewRouter[T any](router apirouter.Router[T], options Options) (*Router[T], error) {
 	swagger, err := generateNewValidSwagger(options.Openapi)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
@@ -79,7 +79,7 @@ func NewRouter(router apirouter.Router, options Options) (*Router, error) {
 		jsonDocumentationPath = options.JSONDocumentationPath
 	}
 
-	return &Router{
+	return &Router[T]{
 		router:                router,
 		swaggerSchema:         swagger,
 		context:               ctx,
@@ -93,8 +93,8 @@ type SubRouterOptions struct {
 	PathPrefix string
 }
 
-func (r Router) SubRouter(router apirouter.Router, opts SubRouterOptions) (*Router, error) {
-	return &Router{
+func (r Router[T]) SubRouter(router apirouter.Router[T], opts SubRouterOptions) (*Router[T], error) {
+	return &Router[T]{
 		router:                router,
 		swaggerSchema:         r.swaggerSchema,
 		context:               r.context,
@@ -130,7 +130,7 @@ func generateNewValidSwagger(swagger *openapi3.T) (*openapi3.T, error) {
 
 // GenerateAndExposeSwagger creates a /documentation/json route on router and
 // expose the generated swagger
-func (r Router) GenerateAndExposeSwagger() error {
+func (r Router[T]) GenerateAndExposeSwagger() error {
 	if err := r.swaggerSchema.Validate(r.context); err != nil {
 		return fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
 	}
@@ -139,21 +139,13 @@ func (r Router) GenerateAndExposeSwagger() error {
 	if err != nil {
 		return fmt.Errorf("%w json marshal: %s", ErrGenerateSwagger, err)
 	}
-	r.router.AddRoute(http.MethodGet, r.jsonDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(jsonSwagger)
-	})
+	r.router.AddRoute(http.MethodGet, r.jsonDocumentationPath, r.router.SwaggerHandler("application/json", jsonSwagger))
 
 	yamlSwagger, err := yaml.JSONToYAML(jsonSwagger)
 	if err != nil {
 		return fmt.Errorf("%w yaml marshal: %s", ErrGenerateSwagger, err)
 	}
-	r.router.AddRoute(http.MethodGet, r.yamlDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusOK)
-		w.Write(yamlSwagger)
-	})
+	r.router.AddRoute(http.MethodGet, r.yamlDocumentationPath, r.router.SwaggerHandler("text/plain", yamlSwagger))
 
 	return nil
 }

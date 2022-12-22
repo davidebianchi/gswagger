@@ -42,7 +42,7 @@ func TestNewRouter(t *testing.T) {
 		})
 
 		require.NoError(t, err)
-		require.Equal(t, &Router{
+		require.Equal(t, &Router[gorilla.HandlerFunc]{
 			context:               context.Background(),
 			router:                mAPIRouter,
 			swaggerSchema:         openapi,
@@ -60,7 +60,7 @@ func TestNewRouter(t *testing.T) {
 		})
 
 		require.NoError(t, err)
-		require.Equal(t, &Router{
+		require.Equal(t, &Router[gorilla.HandlerFunc]{
 			context:               ctx,
 			router:                mAPIRouter,
 			swaggerSchema:         openapi,
@@ -80,7 +80,7 @@ func TestNewRouter(t *testing.T) {
 		})
 
 		require.NoError(t, err)
-		require.Equal(t, &Router{
+		require.Equal(t, &Router[gorilla.HandlerFunc]{
 			context:               ctx,
 			router:                mAPIRouter,
 			swaggerSchema:         openapi,

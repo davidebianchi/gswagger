@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/davidebianchi/gswagger/apirouter"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/mia-platform/jsonschema"
 )
@@ -25,7 +24,7 @@ var (
 
 // AddRawRoute add route to router with specific method, path and handler. Add the
 // router also to the swagger schema, after validating it
-func (r Router) AddRawRoute(method string, routePath string, handler apirouter.HandlerFunc, operation Operation) (interface{}, error) {
+func (r Router[HandlerFunc]) AddRawRoute(method string, routePath string, handler HandlerFunc, operation Operation) (interface{}, error) {
 	op := operation.Operation
 	if op != nil {
 		err := operation.Validate(r.context)
@@ -90,7 +89,7 @@ const (
 )
 
 // AddRoute add a route with json schema inferted by passed schema.
-func (r Router) AddRoute(method string, path string, handler apirouter.HandlerFunc, schema Definitions) (interface{}, error) {
+func (r Router[HandlerFunc]) AddRoute(method string, path string, handler HandlerFunc, schema Definitions) (interface{}, error) {
 	operation := NewOperation()
 	operation.Responses = make(openapi3.Responses)
 	operation.Tags = schema.Tags
@@ -128,7 +127,7 @@ func (r Router) AddRoute(method string, path string, handler apirouter.HandlerFu
 	return r.AddRawRoute(method, path, handler, operation)
 }
 
-func (r Router) getSchemaFromInterface(v interface{}, allowAdditionalProperties bool) (*openapi3.Schema, error) {
+func (r Router[_]) getSchemaFromInterface(v interface{}, allowAdditionalProperties bool) (*openapi3.Schema, error) {
 	if v == nil {
 		return &openapi3.Schema{}, nil
 	}
@@ -159,7 +158,7 @@ func (r Router) getSchemaFromInterface(v interface{}, allowAdditionalProperties 
 	return schema, nil
 }
 
-func (r Router) resolveRequestBodySchema(bodySchema *ContentValue, operation Operation) error {
+func (r Router[_]) resolveRequestBodySchema(bodySchema *ContentValue, operation Operation) error {
 	if bodySchema == nil {
 		return nil
 	}
@@ -178,7 +177,7 @@ func (r Router) resolveRequestBodySchema(bodySchema *ContentValue, operation Ope
 	return nil
 }
 
-func (r Router) resolveResponsesSchema(responses map[int]ContentValue, operation Operation) error {
+func (r Router[_]) resolveResponsesSchema(responses map[int]ContentValue, operation Operation) error {
 	if responses == nil {
 		operation.Responses = openapi3.NewResponses()
 	}
@@ -197,7 +196,7 @@ func (r Router) resolveResponsesSchema(responses map[int]ContentValue, operation
 	return nil
 }
 
-func (r Router) resolveParameterSchema(paramType string, paramConfig ParameterValue, operation Operation) error {
+func (r Router[_]) resolveParameterSchema(paramType string, paramConfig ParameterValue, operation Operation) error {
 	var keys = make([]string, 0, len(paramConfig))
 	for k := range paramConfig {
 		keys = append(keys, k)
@@ -248,7 +247,7 @@ func (r Router) resolveParameterSchema(paramType string, paramConfig ParameterVa
 	return nil
 }
 
-func (r Router) addContentToOASSchema(content Content) (openapi3.Content, error) {
+func (r Router[_]) addContentToOASSchema(content Content) (openapi3.Content, error) {
 	oasContent := openapi3.NewContent()
 	for k, v := range content {
 		var err error
