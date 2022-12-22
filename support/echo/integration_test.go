@@ -1,4 +1,4 @@
-package swagger_test
+package echo_test
 
 import (
 	"context"
@@ -7,8 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	oasEcho "github.com/davidebianchi/gswagger/support/echo"
+
 	swagger "github.com/davidebianchi/gswagger"
-	"github.com/davidebianchi/gswagger/apirouter"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
@@ -19,7 +20,7 @@ const (
 	swaggerOpenapiVersion = "test swagger version"
 )
 
-type echoSwaggerRouter = swagger.Router[http.HandlerFunc, *echo.Route]
+type echoSwaggerRouter = swagger.Router[echo.HandlerFunc, *echo.Route]
 
 func TestIntegration(t *testing.T) {
 	t.Run("router works correctly - echo", func(t *testing.T) {
@@ -51,7 +52,7 @@ func TestIntegration(t *testing.T) {
 	t.Run("works correctly with subrouter - handles path prefix - echo", func(t *testing.T) {
 		eRouter, swaggerRouter := setupEchoSwagger(t)
 
-		subRouter, err := swaggerRouter.SubRouter(echoRouter{router: eRouter}, swagger.SubRouterOptions{
+		subRouter, err := swaggerRouter.SubRouter(oasEcho.NewRouter(eRouter), swagger.SubRouterOptions{
 			PathPrefix: "/prefix",
 		})
 		require.NoError(t, err)
@@ -104,18 +105,13 @@ func readBody(t *testing.T, requestBody io.ReadCloser) string {
 	return string(body)
 }
 
-func okHandler(w http.ResponseWriter, req *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`OK`))
-}
-
 func setupEchoSwagger(t *testing.T) (*echo.Echo, *echoSwaggerRouter) {
 	t.Helper()
 
 	context := context.Background()
 	e := echo.New()
 
-	router, err := swagger.NewRouter(newEchoRouter(e), swagger.Options{
+	router, err := swagger.NewRouter(oasEcho.NewRouter(e), swagger.Options{
 		Context: context,
 		Openapi: &openapi3.T{
 			Info: &openapi3.Info{
@@ -128,10 +124,7 @@ func setupEchoSwagger(t *testing.T) (*echo.Echo, *echoSwaggerRouter) {
 
 	operation := swagger.Operation{}
 
-	_, err = router.AddRawRoute(http.MethodGet, "/hello", func(w http.ResponseWriter, req *http.Request) {
-		ctx := e.NewContext(req, w)
-		echoOkHandler(ctx)
-	}, operation)
+	_, err = router.AddRawRoute(http.MethodGet, "/hello", okHandler, operation)
 	require.NoError(t, err)
 
 	err = router.GenerateAndExposeSwagger()
@@ -140,26 +133,6 @@ func setupEchoSwagger(t *testing.T) (*echo.Echo, *echoSwaggerRouter) {
 	return e, router
 }
 
-func echoOkHandler(c echo.Context) error {
+func okHandler(c echo.Context) error {
 	return c.String(http.StatusOK, "OK")
-}
-
-func newEchoRouter(e *echo.Echo) apirouter.Router[http.HandlerFunc, *echo.Route] {
-	return echoRouter{router: e}
-}
-
-type echoRouter struct {
-	router *echo.Echo
-}
-
-func (r echoRouter) AddRoute(method, path string, handler http.HandlerFunc) *echo.Route {
-	return r.router.Add(method, path, echo.WrapHandler(http.HandlerFunc(handler)))
-}
-
-func (r echoRouter) SwaggerHandler(contentType string, blob []byte) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", contentType)
-		w.WriteHeader(http.StatusOK)
-		w.Write(blob)
-	}
 }
