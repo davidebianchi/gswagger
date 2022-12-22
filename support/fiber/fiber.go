@@ -6,18 +6,19 @@ import (
 )
 
 type HandlerFunc = fiber.Handler
+type Route = fiber.Router
 
 type fiberRouter struct {
 	router fiber.Router
 }
 
-func NewRouter(router fiber.Router) apirouter.Router[HandlerFunc] {
+func NewRouter(router fiber.Router) apirouter.Router[HandlerFunc, Route] {
 	return fiberRouter{
 		router: router,
 	}
 }
 
-func (r fiberRouter) AddRoute(method string, path string, handler HandlerFunc) apirouter.Route {
+func (r fiberRouter) AddRoute(method string, path string, handler HandlerFunc) Route {
 	return r.router.Add(method, path, handler)
 }
 

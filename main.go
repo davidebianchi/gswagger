@@ -30,8 +30,8 @@ const (
 // Router handle the api router and the swagger schema.
 // api router supported out of the box are:
 // - gorilla mux
-type Router[T any] struct {
-	router                apirouter.Router[T]
+type Router[HandlerFunc, Route any] struct {
+	router                apirouter.Router[HandlerFunc, Route]
 	swaggerSchema         *openapi3.T
 	context               context.Context
 	jsonDocumentationPath string
@@ -52,7 +52,7 @@ type Options struct {
 }
 
 // NewRouter generate new router with swagger. Default to OpenAPI 3.0.0
-func NewRouter[T any](router apirouter.Router[T], options Options) (*Router[T], error) {
+func NewRouter[HandlerFunc, Route any](router apirouter.Router[HandlerFunc, Route], options Options) (*Router[HandlerFunc, Route], error) {
 	swagger, err := generateNewValidSwagger(options.Openapi)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
@@ -79,7 +79,7 @@ func NewRouter[T any](router apirouter.Router[T], options Options) (*Router[T], 
 		jsonDocumentationPath = options.JSONDocumentationPath
 	}
 
-	return &Router[T]{
+	return &Router[HandlerFunc, Route]{
 		router:                router,
 		swaggerSchema:         swagger,
 		context:               ctx,
@@ -93,8 +93,8 @@ type SubRouterOptions struct {
 	PathPrefix string
 }
 
-func (r Router[T]) SubRouter(router apirouter.Router[T], opts SubRouterOptions) (*Router[T], error) {
-	return &Router[T]{
+func (r Router[HandlerFunc, Route]) SubRouter(router apirouter.Router[HandlerFunc, Route], opts SubRouterOptions) (*Router[HandlerFunc, Route], error) {
+	return &Router[HandlerFunc, Route]{
 		router:                router,
 		swaggerSchema:         r.swaggerSchema,
 		context:               r.context,
@@ -130,7 +130,7 @@ func generateNewValidSwagger(swagger *openapi3.T) (*openapi3.T, error) {
 
 // GenerateAndExposeSwagger creates a /documentation/json route on router and
 // expose the generated swagger
-func (r Router[T]) GenerateAndExposeSwagger() error {
+func (r Router[_, _]) GenerateAndExposeSwagger() error {
 	if err := r.swaggerSchema.Validate(r.context); err != nil {
 		return fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
 	}

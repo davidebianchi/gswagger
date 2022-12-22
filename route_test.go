@@ -17,7 +17,7 @@ import (
 const jsonType = "application/json"
 const formDataType = "multipart/form-data"
 
-type TestRouter = Router[gorilla.HandlerFunc]
+type TestRouter = Router[gorilla.HandlerFunc, gorilla.Route]
 
 func TestAddRoutes(t *testing.T) {
 

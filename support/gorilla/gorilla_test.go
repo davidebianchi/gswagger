@@ -16,7 +16,7 @@ func TestGorillaMuxRouter(t *testing.T) {
 	ar := NewRouter(muxRouter)
 
 	t.Run("create a new api router", func(t *testing.T) {
-		require.Implements(t, (*apirouter.Router[HandlerFunc])(nil), ar)
+		require.Implements(t, (*apirouter.Router[HandlerFunc, Route])(nil), ar)
 	})
 
 	t.Run("add new route", func(t *testing.T) {
@@ -24,9 +24,7 @@ func TestGorillaMuxRouter(t *testing.T) {
 			w.WriteHeader(200)
 			w.Write(nil)
 		})
-
-		_, ok := route.(*mux.Route)
-		require.True(t, ok)
+		require.IsType(t, route, &mux.Route{})
 
 		t.Run("router exposes correctly api", func(t *testing.T) {
 			w := httptest.NewRecorder()

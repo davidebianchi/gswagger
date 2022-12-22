@@ -16,16 +16,14 @@ func TestFiberRouterSupport(t *testing.T) {
 	ar := NewRouter(fiberRouter)
 
 	t.Run("create a new api router", func(t *testing.T) {
-		require.Implements(t, (*apirouter.Router[HandlerFunc])(nil), ar)
+		require.Implements(t, (*apirouter.Router[HandlerFunc, Route])(nil), ar)
 	})
 
 	t.Run("add new route", func(t *testing.T) {
 		route := ar.AddRoute(http.MethodGet, "/foo", func(c *fiber.Ctx) error {
 			return c.SendStatus(http.StatusOK)
 		})
-
-		_, ok := route.(fiber.Router)
-		require.True(t, ok)
+		require.IsType(t, route, fiber.New())
 
 		t.Run("router exposes correctly api", func(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, "/foo", nil)
