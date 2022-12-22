@@ -1,12 +1,6 @@
 package apirouter
 
-import "net/http"
-
-// Handler is the http type handler
-type HandlerFunc func(w http.ResponseWriter, req *http.Request)
-
-type Router interface {
+type Router[HandlerFunc any, Route any] interface {
 	AddRoute(method string, path string, handler HandlerFunc) Route
+	SwaggerHandler(contentType string, blob []byte) HandlerFunc
 }
-
-type Route interface{}

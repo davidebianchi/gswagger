@@ -30,8 +30,8 @@ const (
 // Router handle the api router and the swagger schema.
 // api router supported out of the box are:
 // - gorilla mux
-type Router struct {
-	router                apirouter.Router
+type Router[HandlerFunc, Route any] struct {
+	router                apirouter.Router[HandlerFunc, Route]
 	swaggerSchema         *openapi3.T
 	context               context.Context
 	jsonDocumentationPath string
@@ -52,8 +52,8 @@ type Options struct {
 }
 
 // NewRouter generate new router with swagger. Default to OpenAPI 3.0.0
-func NewRouter(router apirouter.Router, options Options) (*Router, error) {
-	swagger, err := generateNewValidSwagger(options.Openapi)
+func NewRouter[HandlerFunc, Route any](router apirouter.Router[HandlerFunc, Route], options Options) (*Router[HandlerFunc, Route], error) {
+	swagger, err := generateNewValidOpenapi(options.Openapi)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
 	}
@@ -79,7 +79,7 @@ func NewRouter(router apirouter.Router, options Options) (*Router, error) {
 		jsonDocumentationPath = options.JSONDocumentationPath
 	}
 
-	return &Router{
+	return &Router[HandlerFunc, Route]{
 		router:                router,
 		swaggerSchema:         swagger,
 		context:               ctx,
@@ -93,8 +93,8 @@ type SubRouterOptions struct {
 	PathPrefix string
 }
 
-func (r Router) SubRouter(router apirouter.Router, opts SubRouterOptions) (*Router, error) {
-	return &Router{
+func (r Router[HandlerFunc, Route]) SubRouter(router apirouter.Router[HandlerFunc, Route], opts SubRouterOptions) (*Router[HandlerFunc, Route], error) {
+	return &Router[HandlerFunc, Route]{
 		router:                router,
 		swaggerSchema:         r.swaggerSchema,
 		context:               r.context,
@@ -104,7 +104,7 @@ func (r Router) SubRouter(router apirouter.Router, opts SubRouterOptions) (*Rout
 	}, nil
 }
 
-func generateNewValidSwagger(swagger *openapi3.T) (*openapi3.T, error) {
+func generateNewValidOpenapi(swagger *openapi3.T) (*openapi3.T, error) {
 	if swagger == nil {
 		return nil, fmt.Errorf("swagger is required")
 	}
@@ -128,9 +128,9 @@ func generateNewValidSwagger(swagger *openapi3.T) (*openapi3.T, error) {
 	return swagger, nil
 }
 
-// GenerateAndExposeSwagger creates a /documentation/json route on router and
+// GenerateAndExposeOpenapi creates a /documentation/json route on router and
 // expose the generated swagger
-func (r Router) GenerateAndExposeSwagger() error {
+func (r Router[_, _]) GenerateAndExposeOpenapi() error {
 	if err := r.swaggerSchema.Validate(r.context); err != nil {
 		return fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
 	}
@@ -139,21 +139,13 @@ func (r Router) GenerateAndExposeSwagger() error {
 	if err != nil {
 		return fmt.Errorf("%w json marshal: %s", ErrGenerateSwagger, err)
 	}
-	r.router.AddRoute(http.MethodGet, r.jsonDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(jsonSwagger)
-	})
+	r.router.AddRoute(http.MethodGet, r.jsonDocumentationPath, r.router.SwaggerHandler("application/json", jsonSwagger))
 
 	yamlSwagger, err := yaml.JSONToYAML(jsonSwagger)
 	if err != nil {
 		return fmt.Errorf("%w yaml marshal: %s", ErrGenerateSwagger, err)
 	}
-	r.router.AddRoute(http.MethodGet, r.yamlDocumentationPath, func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusOK)
-		w.Write(yamlSwagger)
-	})
+	r.router.AddRoute(http.MethodGet, r.yamlDocumentationPath, r.router.SwaggerHandler("text/plain", yamlSwagger))
 
 	return nil
 }

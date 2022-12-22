@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### BREAKING CHANGES
+
+- `apirouter.NewGorillaMuxRouter` is now `gorilla.NewRouter` (exposed by package `github.com/davidebianchi/gswagger/support/gorilla`).
+- removed `apirouter.HandlerFunc`. Now it is exposed by `gorilla.HandlerFunc`
+- changed `apirouter.Router` interface:
+  - now it accept a generics `HandlerFunc` to define the handler function
+  - add method `SwaggerHandler(contentType string, json []byte) HandlerFunc`
+- `NewRouter` function now accept `HandlerFunc` as generics
+- drop support to golang <= 1.17
+- `GenerateAndExposeSwagger` renamed to `GenerateAndExposeOpenapi`
+
+### Feature
+
+- support to different types of routers
+- add [fiber](https://github.com/gofiber/fiber) support
+- add [echo](https://echo.labstack.com/) support
+
 ## 0.6.1 - 17-11-2022
 
 ### Changed

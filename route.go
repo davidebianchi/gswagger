@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/davidebianchi/gswagger/apirouter"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/mia-platform/jsonschema"
 )
@@ -25,12 +24,12 @@ var (
 
 // AddRawRoute add route to router with specific method, path and handler. Add the
 // router also to the swagger schema, after validating it
-func (r Router) AddRawRoute(method string, routePath string, handler apirouter.HandlerFunc, operation Operation) (interface{}, error) {
+func (r Router[HandlerFunc, Route]) AddRawRoute(method string, routePath string, handler HandlerFunc, operation Operation) (Route, error) {
 	op := operation.Operation
 	if op != nil {
 		err := operation.Validate(r.context)
 		if err != nil {
-			return nil, err
+			return getZero[Route](), err
 		}
 	} else {
 		op = openapi3.NewOperation()
@@ -89,46 +88,46 @@ const (
 	cookieParamType = "cookie"
 )
 
-// AddRoute add a route with json schema inferted by passed schema.
-func (r Router) AddRoute(method string, path string, handler apirouter.HandlerFunc, schema Definitions) (interface{}, error) {
+// AddRoute add a route with json schema inferred by passed schema.
+func (r Router[HandlerFunc, Route]) AddRoute(method string, path string, handler HandlerFunc, schema Definitions) (Route, error) {
 	operation := NewOperation()
 	operation.Responses = make(openapi3.Responses)
 	operation.Tags = schema.Tags
 
 	err := r.resolveRequestBodySchema(schema.RequestBody, operation)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrRequestBody, err)
+		return getZero[Route](), fmt.Errorf("%w: %s", ErrRequestBody, err)
 	}
 
 	err = r.resolveResponsesSchema(schema.Responses, operation)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrResponses, err)
+		return getZero[Route](), fmt.Errorf("%w: %s", ErrResponses, err)
 	}
 
 	err = r.resolveParameterSchema(pathParamsType, getPathParamsAutofilled(schema, path), operation)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrPathParams, err)
+		return getZero[Route](), fmt.Errorf("%w: %s", ErrPathParams, err)
 	}
 
 	err = r.resolveParameterSchema(queryParamType, schema.Querystring, operation)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrPathParams, err)
+		return getZero[Route](), fmt.Errorf("%w: %s", ErrPathParams, err)
 	}
 
 	err = r.resolveParameterSchema(headerParamType, schema.Headers, operation)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrPathParams, err)
+		return getZero[Route](), fmt.Errorf("%w: %s", ErrPathParams, err)
 	}
 
 	err = r.resolveParameterSchema(cookieParamType, schema.Cookies, operation)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrPathParams, err)
+		return getZero[Route](), fmt.Errorf("%w: %s", ErrPathParams, err)
 	}
 
 	return r.AddRawRoute(method, path, handler, operation)
 }
 
-func (r Router) getSchemaFromInterface(v interface{}, allowAdditionalProperties bool) (*openapi3.Schema, error) {
+func (r Router[_, _]) getSchemaFromInterface(v interface{}, allowAdditionalProperties bool) (*openapi3.Schema, error) {
 	if v == nil {
 		return &openapi3.Schema{}, nil
 	}
@@ -159,7 +158,7 @@ func (r Router) getSchemaFromInterface(v interface{}, allowAdditionalProperties 
 	return schema, nil
 }
 
-func (r Router) resolveRequestBodySchema(bodySchema *ContentValue, operation Operation) error {
+func (r Router[_, _]) resolveRequestBodySchema(bodySchema *ContentValue, operation Operation) error {
 	if bodySchema == nil {
 		return nil
 	}
@@ -178,7 +177,7 @@ func (r Router) resolveRequestBodySchema(bodySchema *ContentValue, operation Ope
 	return nil
 }
 
-func (r Router) resolveResponsesSchema(responses map[int]ContentValue, operation Operation) error {
+func (r Router[_, _]) resolveResponsesSchema(responses map[int]ContentValue, operation Operation) error {
 	if responses == nil {
 		operation.Responses = openapi3.NewResponses()
 	}
@@ -197,7 +196,7 @@ func (r Router) resolveResponsesSchema(responses map[int]ContentValue, operation
 	return nil
 }
 
-func (r Router) resolveParameterSchema(paramType string, paramConfig ParameterValue, operation Operation) error {
+func (r Router[_, _]) resolveParameterSchema(paramType string, paramConfig ParameterValue, operation Operation) error {
 	var keys = make([]string, 0, len(paramConfig))
 	for k := range paramConfig {
 		keys = append(keys, k)
@@ -248,7 +247,7 @@ func (r Router) resolveParameterSchema(paramType string, paramConfig ParameterVa
 	return nil
 }
 
-func (r Router) addContentToOASSchema(content Content) (openapi3.Content, error) {
+func (r Router[_, _]) addContentToOASSchema(content Content) (openapi3.Content, error) {
 	oasContent := openapi3.NewContent()
 	for k, v := range content {
 		var err error
@@ -278,4 +277,9 @@ func getPathParamsAutofilled(schema Definitions, path string) ParameterValue {
 		}
 	}
 	return schema.PathParams
+}
+
+func getZero[T any]() T {
+	var result T
+	return result
 }

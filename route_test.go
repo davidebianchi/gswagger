@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/davidebianchi/gswagger/apirouter"
+	"github.com/davidebianchi/gswagger/support/gorilla"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
@@ -16,6 +16,8 @@ import (
 
 const jsonType = "application/json"
 const formDataType = "multipart/form-data"
+
+type TestRouter = Router[gorilla.HandlerFunc, gorilla.Route]
 
 func TestAddRoutes(t *testing.T) {
 
@@ -56,19 +58,19 @@ func TestAddRoutes(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		routes       func(t *testing.T, router *Router)
+		routes       func(t *testing.T, router *TestRouter)
 		fixturesPath string
 		testPath     string
 		testMethod   string
 	}{
 		{
 			name:         "no routes",
-			routes:       func(t *testing.T, router *Router) {},
+			routes:       func(t *testing.T, router *TestRouter) {},
 			fixturesPath: "testdata/empty.json",
 		},
 		{
 			name: "empty route schema",
-			routes: func(t *testing.T, router *Router) {
+			routes: func(t *testing.T, router *TestRouter) {
 				_, err := router.AddRoute(http.MethodPost, "/", okHandler, Definitions{})
 				require.NoError(t, err)
 			},
@@ -78,7 +80,7 @@ func TestAddRoutes(t *testing.T) {
 		},
 		{
 			name: "multiple real routes",
-			routes: func(t *testing.T, router *Router) {
+			routes: func(t *testing.T, router *TestRouter) {
 				_, err := router.AddRoute(http.MethodPost, "/users", okHandler, Definitions{
 					RequestBody: &ContentValue{
 						Content: Content{
@@ -128,7 +130,7 @@ func TestAddRoutes(t *testing.T) {
 		},
 		{
 			name: "multipart request body",
-			routes: func(t *testing.T, router *Router) {
+			routes: func(t *testing.T, router *TestRouter) {
 				_, err := router.AddRoute(http.MethodPost, "/files", okHandler, Definitions{
 					RequestBody: &ContentValue{
 						Content: Content{
@@ -157,7 +159,7 @@ func TestAddRoutes(t *testing.T) {
 		},
 		{
 			name: "schema with params",
-			routes: func(t *testing.T, router *Router) {
+			routes: func(t *testing.T, router *TestRouter) {
 				var number = 0
 				_, err := router.AddRoute(http.MethodGet, "/users/{userId}", okHandler, Definitions{
 					PathParams: ParameterValue{
@@ -186,7 +188,7 @@ func TestAddRoutes(t *testing.T) {
 		},
 		{
 			name: "schema without params autofilled",
-			routes: func(t *testing.T, router *Router) {
+			routes: func(t *testing.T, router *TestRouter) {
 				_, err := router.AddRoute(http.MethodGet, "/users/{userId}", okHandler, Definitions{
 					Querystring: ParameterValue{
 						"query": {
@@ -204,7 +206,7 @@ func TestAddRoutes(t *testing.T) {
 		},
 		{
 			name: "schema with querystring",
-			routes: func(t *testing.T, router *Router) {
+			routes: func(t *testing.T, router *TestRouter) {
 				_, err := router.AddRoute(http.MethodGet, "/projects", okHandler, Definitions{
 					Querystring: ParameterValue{
 						"projectId": {
@@ -220,7 +222,7 @@ func TestAddRoutes(t *testing.T) {
 		},
 		{
 			name: "schema with headers",
-			routes: func(t *testing.T, router *Router) {
+			routes: func(t *testing.T, router *TestRouter) {
 				_, err := router.AddRoute(http.MethodGet, "/projects", okHandler, Definitions{
 					Headers: ParameterValue{
 						"foo": {
@@ -239,7 +241,7 @@ func TestAddRoutes(t *testing.T) {
 		},
 		{
 			name: "schema with cookies",
-			routes: func(t *testing.T, router *Router) {
+			routes: func(t *testing.T, router *TestRouter) {
 				_, err := router.AddRoute(http.MethodGet, "/projects", okHandler, Definitions{
 					Cookies: ParameterValue{
 						"debug": {
@@ -258,7 +260,7 @@ func TestAddRoutes(t *testing.T) {
 		},
 		{
 			name: "schema defined without value",
-			routes: func(t *testing.T, router *Router) {
+			routes: func(t *testing.T, router *TestRouter) {
 				_, err := router.AddRoute(http.MethodPost, "/{id}", okHandler, Definitions{
 					RequestBody: &ContentValue{
 						Description: "request body without schema",
@@ -287,7 +289,7 @@ func TestAddRoutes(t *testing.T) {
 		},
 		{
 			name: "allOf schema",
-			routes: func(t *testing.T, router *Router) {
+			routes: func(t *testing.T, router *TestRouter) {
 				schema := openapi3.NewAllOfSchema()
 				schema.AllOf = []*openapi3.SchemaRef{
 					{
@@ -332,7 +334,7 @@ func TestAddRoutes(t *testing.T) {
 		},
 		{
 			name: "anyOf schema",
-			routes: func(t *testing.T, router *Router) {
+			routes: func(t *testing.T, router *TestRouter) {
 				schema := openapi3.NewAnyOfSchema()
 				schema.AnyOf = []*openapi3.SchemaRef{
 					{
@@ -376,7 +378,7 @@ func TestAddRoutes(t *testing.T) {
 		},
 		{
 			name: "oneOf support on properties",
-			routes: func(t *testing.T, router *Router) {
+			routes: func(t *testing.T, router *TestRouter) {
 				_, err := router.AddRoute(http.MethodPost, "/user-profile", okHandler, Definitions{
 					RequestBody: &ContentValue{
 						Content: Content{
@@ -424,7 +426,7 @@ func TestAddRoutes(t *testing.T) {
 		},
 		{
 			name: "schema with tags",
-			routes: func(t *testing.T, router *Router) {
+			routes: func(t *testing.T, router *TestRouter) {
 				_, err := router.AddRoute(http.MethodGet, "/users", okHandler, Definitions{
 					Tags: []string{"Tag1", "Tag2"},
 				})
@@ -440,7 +442,7 @@ func TestAddRoutes(t *testing.T) {
 			context := context.Background()
 			r := mux.NewRouter()
 
-			router, err := NewRouter(apirouter.NewGorillaMuxRouter(r), Options{
+			router, err := NewRouter(gorilla.NewRouter(r), Options{
 				Context: context,
 				Openapi: getBaseSwagger(t),
 			})
@@ -450,7 +452,7 @@ func TestAddRoutes(t *testing.T) {
 			// Add routes to test
 			test.routes(t, router)
 
-			err = router.GenerateAndExposeSwagger()
+			err = router.GenerateAndExposeOpenapi()
 			require.NoError(t, err)
 
 			if test.testPath != "" {
@@ -630,7 +632,7 @@ func TestResolveRequestBodySchema(t *testing.T) {
 	}
 
 	mux := mux.NewRouter()
-	router, err := NewRouter(apirouter.NewGorillaMuxRouter(mux), Options{
+	router, err := NewRouter(gorilla.NewRouter(mux), Options{
 		Openapi: getBaseSwagger(t),
 	})
 	require.NoError(t, err)
@@ -854,7 +856,7 @@ func TestResolveResponsesSchema(t *testing.T) {
 	}
 
 	mux := mux.NewRouter()
-	router, err := NewRouter(apirouter.NewGorillaMuxRouter(mux), Options{
+	router, err := NewRouter(gorilla.NewRouter(mux), Options{
 		Openapi: getBaseSwagger(t),
 	})
 	require.NoError(t, err)
@@ -1024,7 +1026,7 @@ func TestResolveParametersSchema(t *testing.T) {
 	}
 
 	mux := mux.NewRouter()
-	router, err := NewRouter(apirouter.NewGorillaMuxRouter(mux), Options{
+	router, err := NewRouter(gorilla.NewRouter(mux), Options{
 		Openapi: getBaseSwagger(t),
 	})
 	require.NoError(t, err)
