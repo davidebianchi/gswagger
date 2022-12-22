@@ -9,6 +9,7 @@ import (
 
 	swagger "github.com/davidebianchi/gswagger"
 	"github.com/davidebianchi/gswagger/apirouter"
+	"github.com/davidebianchi/gswagger/support/gorilla"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gorilla/mux"
 	"github.com/labstack/echo/v4"
@@ -77,7 +78,7 @@ func TestIntegration(t *testing.T) {
 		muxRouter, swaggerRouter := setupSwagger(t)
 
 		muxSubRouter := muxRouter.NewRoute().Subrouter()
-		subRouter, err := swaggerRouter.SubRouter(apirouter.NewGorillaMuxRouter(muxSubRouter), swagger.SubRouterOptions{
+		subRouter, err := swaggerRouter.SubRouter(gorilla.NewRouter(muxSubRouter), swagger.SubRouterOptions{
 			PathPrefix: "/prefix",
 		})
 		require.NoError(t, err)
@@ -182,7 +183,7 @@ func setupSwagger(t *testing.T) (*mux.Router, *swagger.Router) {
 	context := context.Background()
 	muxRouter := mux.NewRouter()
 
-	router, err := swagger.NewRouter(apirouter.NewGorillaMuxRouter(muxRouter), swagger.Options{
+	router, err := swagger.NewRouter(gorilla.NewRouter(muxRouter), swagger.Options{
 		Context: context,
 		Openapi: &openapi3.T{
 			Info: &openapi3.Info{

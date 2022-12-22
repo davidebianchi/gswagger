@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/davidebianchi/gswagger/apirouter"
+	"github.com/davidebianchi/gswagger/support/gorilla"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
@@ -18,7 +18,7 @@ import (
 
 func TestNewRouter(t *testing.T) {
 	muxRouter := mux.NewRouter()
-	mAPIRouter := apirouter.NewGorillaMuxRouter(muxRouter)
+	mAPIRouter := gorilla.NewRouter(muxRouter)
 
 	info := &openapi3.Info{
 		Title:   "my title",
@@ -187,7 +187,7 @@ func TestGenerateValidSwagger(t *testing.T) {
 func TestGenerateAndExposeSwagger(t *testing.T) {
 	t.Run("fails swagger validation", func(t *testing.T) {
 		mRouter := mux.NewRouter()
-		router, err := NewRouter(apirouter.NewGorillaMuxRouter(mRouter), Options{
+		router, err := NewRouter(gorilla.NewRouter(mRouter), Options{
 			Openapi: &openapi3.T{
 				Info: &openapi3.Info{
 					Title:   "title",
@@ -213,7 +213,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
-		router, err := NewRouter(apirouter.NewGorillaMuxRouter(mRouter), Options{
+		router, err := NewRouter(gorilla.NewRouter(mRouter), Options{
 			Openapi: swagger,
 		})
 		require.NoError(t, err)
@@ -240,7 +240,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
-		router, err := NewRouter(apirouter.NewGorillaMuxRouter(mRouter), Options{
+		router, err := NewRouter(gorilla.NewRouter(mRouter), Options{
 			Openapi:               swagger,
 			JSONDocumentationPath: "/custom/path",
 		})
@@ -268,7 +268,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
-		router, err := NewRouter(apirouter.NewGorillaMuxRouter(mRouter), Options{
+		router, err := NewRouter(gorilla.NewRouter(mRouter), Options{
 			Openapi: swagger,
 		})
 		require.NoError(t, err)
@@ -295,7 +295,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
-		router, err := NewRouter(apirouter.NewGorillaMuxRouter(mRouter), Options{
+		router, err := NewRouter(gorilla.NewRouter(mRouter), Options{
 			Openapi:               swagger,
 			YAMLDocumentationPath: "/custom/path",
 		})
@@ -320,7 +320,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 	t.Run("ok - subrouter", func(t *testing.T) {
 		mRouter := mux.NewRouter()
 
-		router, err := NewRouter(apirouter.NewGorillaMuxRouter(mRouter), Options{
+		router, err := NewRouter(gorilla.NewRouter(mRouter), Options{
 			Openapi: &openapi3.T{
 				Info: &openapi3.Info{
 					Title:   "test swagger title",
@@ -337,7 +337,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		}, Definitions{})
 
 		mSubRouter := mRouter.PathPrefix("/prefix").Subrouter()
-		subrouter, err := router.SubRouter(apirouter.NewGorillaMuxRouter(mSubRouter), SubRouterOptions{
+		subrouter, err := router.SubRouter(gorilla.NewRouter(mSubRouter), SubRouterOptions{
 			PathPrefix: "/prefix",
 		})
 		require.NoError(t, err)
@@ -375,7 +375,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 	t.Run("ok - new router with path prefix", func(t *testing.T) {
 		mRouter := mux.NewRouter()
 
-		router, err := NewRouter(apirouter.NewGorillaMuxRouter(mRouter), Options{
+		router, err := NewRouter(gorilla.NewRouter(mRouter), Options{
 			Openapi: &openapi3.T{
 				Info: &openapi3.Info{
 					Title:   "test swagger title",

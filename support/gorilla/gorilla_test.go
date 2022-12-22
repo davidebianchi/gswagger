@@ -1,20 +1,21 @@
-package apirouter
+package gorilla
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/davidebianchi/gswagger/apirouter"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGorillaMuxRouter(t *testing.T) {
 	muxRouter := mux.NewRouter()
-	ar := NewGorillaMuxRouter(muxRouter)
+	ar := NewRouter(muxRouter)
 
 	t.Run("create a new api router", func(t *testing.T) {
-		require.Implements(t, (*Router)(nil), ar)
+		require.Implements(t, (*apirouter.Router)(nil), ar)
 	})
 
 	t.Run("add new route", func(t *testing.T) {

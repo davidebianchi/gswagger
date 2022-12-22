@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### BREAKING CHANGES
+
+- `apirouter.NewGorillaMuxRouter` is now `gorilla.NewRouter` (exposed by package `github.com/davidebianchi/gswagger/support/gorilla`).
+
 ## 0.6.1 - 17-11-2022
 
 ### Changed
