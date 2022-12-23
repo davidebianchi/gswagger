@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.8.0 - 23-12-2022
+
+### BREAKING CHANGES
+
+- add `TransformPathToOasPath(path string) string` method to apirouter.Router interface to handle different types of paths parameters. If you use one of the supported routers, you should do nothing.
+
 ## 0.7.0 - 22-12-2022
 
 This is a big major release. The main achievement is to increase the usability of this library to all the routers.
