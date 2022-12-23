@@ -28,6 +28,10 @@ func (r gorillaRouter) SwaggerHandler(contentType string, blob []byte) HandlerFu
 	}
 }
 
+func (r gorillaRouter) TransformPathToOasPath(path string) string {
+	return path
+}
+
 func NewRouter(router *mux.Router) apirouter.Router[HandlerFunc, Route] {
 	return gorillaRouter{
 		router: router,

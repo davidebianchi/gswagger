@@ -25,6 +25,10 @@ func (r echoRouter) SwaggerHandler(contentType string, blob []byte) echo.Handler
 	}
 }
 
+func (r echoRouter) TransformPathToOasPath(path string) string {
+	return apirouter.TransformPathParamsWithColon(path)
+}
+
 func NewRouter(router *echo.Echo) apirouter.Router[echo.HandlerFunc, Route] {
 	return echoRouter{
 		router: router,

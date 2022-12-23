@@ -28,3 +28,7 @@ func (r fiberRouter) SwaggerHandler(contentType string, blob []byte) HandlerFunc
 		return c.Send(blob)
 	}
 }
+
+func (r fiberRouter) TransformPathToOasPath(path string) string {
+	return apirouter.TransformPathParamsWithColon(path)
+}
