@@ -3,7 +3,7 @@ module github.com/davidebianchi/gswagger
 go 1.19
 
 require (
-	github.com/getkin/kin-openapi v0.111.0
+	github.com/getkin/kin-openapi v0.112.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-openapi/swag v0.21.1 // indirect
 	github.com/gorilla/mux v1.8.0
