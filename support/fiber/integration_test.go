@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	swagger "github.com/davidebianchi/gswagger"
@@ -22,18 +23,34 @@ const (
 	swaggerOpenapiVersion = "test swagger version"
 )
 
-func TestWithFiber(t *testing.T) {
+func TestFiberIntegration(t *testing.T) {
 	t.Run("router works correctly", func(t *testing.T) {
-		router, _ := setupSwagger(t)
+		router, oasRouter := setupSwagger(t)
 
-		r := httptest.NewRequest(http.MethodGet, "/hello", nil)
-
-		resp, err := router.Test(r)
+		err := oasRouter.GenerateAndExposeOpenapi()
 		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
 
-		body := readBody(t, resp.Body)
-		require.Equal(t, "OK", body)
+		t.Run("/hello", func(t *testing.T) {
+			r := httptest.NewRequest(http.MethodGet, "/hello", nil)
+
+			resp, err := router.Test(r)
+			require.NoError(t, err)
+			require.Equal(t, http.StatusOK, resp.StatusCode)
+
+			body := readBody(t, resp.Body)
+			require.Equal(t, "OK", body)
+		})
+
+		t.Run("/hello/:value", func(t *testing.T) {
+			r := httptest.NewRequest(http.MethodPost, "/hello/something", nil)
+
+			resp, err := router.Test(r)
+			require.NoError(t, err)
+			require.Equal(t, http.StatusOK, resp.StatusCode)
+
+			body := readBody(t, resp.Body)
+			require.Equal(t, "OK", body)
+		})
 
 		t.Run("and generate swagger", func(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, swagger.DefaultJSONDocumentationPath, nil)
@@ -43,36 +60,26 @@ func TestWithFiber(t *testing.T) {
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 
 			body := readBody(t, resp.Body)
-			require.Equal(t, "{\"components\":{},\"info\":{\"title\":\"test swagger title\",\"version\":\"test swagger version\"},\"openapi\":\"3.0.0\",\"paths\":{\"/hello\":{\"get\":{\"responses\":{\"default\":{\"description\":\"\"}}}}}}", body)
+			require.JSONEq(t, readFile(t, "../testdata/integration.json"), body, body)
 		})
 	})
 
 	t.Run("works correctly with subrouter - handles path prefix - gorilla mux", func(t *testing.T) {
 		fiberRouter, oasRouter := setupSwagger(t)
 
-		fiberRouter.Route("/foo", func(router fiber.Router) {
-			subRouter, err := oasRouter.SubRouter(oasFiber.NewRouter(router), swagger.SubRouterOptions{
-				PathPrefix: "/prefix",
-			})
-			require.NoError(t, err)
-
-			_, err = subRouter.AddRoute(http.MethodGet, "/nested", okHandler, swagger.Definitions{})
-			require.NoError(t, err)
+		subRouter, err := oasRouter.SubRouter(oasFiber.NewRouter(fiberRouter), swagger.SubRouterOptions{
+			PathPrefix: "/prefix",
 		})
-
-		oasRouter.AddRoute(http.MethodGet, "/foo", okHandler, swagger.Definitions{})
-
-		r := httptest.NewRequest(http.MethodGet, "/hello", nil)
-
-		resp, err := fiberRouter.Test(r)
 		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
 
-		body := readBody(t, resp.Body)
-		require.Equal(t, "OK", body)
+		_, err = subRouter.AddRoute(http.MethodGet, "/foo", okHandler, swagger.Definitions{})
+		require.NoError(t, err)
 
-		t.Run("correctly call router", func(t *testing.T) {
-			r := httptest.NewRequest(http.MethodGet, "/foo", nil)
+		err = oasRouter.GenerateAndExposeOpenapi()
+		require.NoError(t, err)
+
+		t.Run("correctly call /hello", func(t *testing.T) {
+			r := httptest.NewRequest(http.MethodGet, "/hello", nil)
 
 			resp, err := fiberRouter.Test(r)
 			require.NoError(t, err)
@@ -83,7 +90,7 @@ func TestWithFiber(t *testing.T) {
 		})
 
 		t.Run("correctly call sub router", func(t *testing.T) {
-			r := httptest.NewRequest(http.MethodGet, "/foo/prefix/nested", nil)
+			r := httptest.NewRequest(http.MethodGet, "/prefix/foo", nil)
 
 			resp, err := fiberRouter.Test(r)
 			require.NoError(t, err)
@@ -101,7 +108,7 @@ func TestWithFiber(t *testing.T) {
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 
 			body := readBody(t, resp.Body)
-			require.Equal(t, "{\"components\":{},\"info\":{\"title\":\"test swagger title\",\"version\":\"test swagger version\"},\"openapi\":\"3.0.0\",\"paths\":{\"/hello\":{\"get\":{\"responses\":{\"default\":{\"description\":\"\"}}}}}}", body)
+			require.JSONEq(t, readFile(t, "../testdata/intergation-subrouter.json"), body, body)
 		})
 	})
 }
@@ -128,7 +135,7 @@ func setupSwagger(t *testing.T) (*fiber.App, *SwaggerRouter) {
 	_, err = router.AddRawRoute(http.MethodGet, "/hello", okHandler, operation)
 	require.NoError(t, err)
 
-	err = router.GenerateAndExposeOpenapi()
+	_, err = router.AddRoute(http.MethodPost, "/hello/:value", okHandler, swagger.Definitions{})
 	require.NoError(t, err)
 
 	return fiberRouter, router
@@ -146,4 +153,13 @@ func readBody(t *testing.T, requestBody io.ReadCloser) string {
 	require.NoError(t, err)
 
 	return string(body)
+}
+
+func readFile(t *testing.T, path string) string {
+	t.Helper()
+
+	fileContent, err := os.ReadFile(path)
+	require.NoError(t, err)
+
+	return string(fileContent)
 }

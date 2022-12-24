@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	swagger "github.com/davidebianchi/gswagger"
@@ -23,7 +24,10 @@ type SwaggerRouter = swagger.Router[gorilla.HandlerFunc, gorilla.Route]
 
 func TestGorillaIntegration(t *testing.T) {
 	t.Run("router works correctly", func(t *testing.T) {
-		muxRouter, _ := setupSwagger(t)
+		muxRouter, oasRouter := setupSwagger(t)
+
+		err := oasRouter.GenerateAndExposeOpenapi()
+		require.NoError(t, err)
 
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/hello", nil)
@@ -44,15 +48,15 @@ func TestGorillaIntegration(t *testing.T) {
 			require.Equal(t, http.StatusOK, w.Result().StatusCode)
 
 			body := readBody(t, w.Result().Body)
-			require.Equal(t, "{\"components\":{},\"info\":{\"title\":\"test swagger title\",\"version\":\"test swagger version\"},\"openapi\":\"3.0.0\",\"paths\":{\"/hello\":{\"get\":{\"responses\":{\"default\":{\"description\":\"\"}}}}}}", body)
+			require.JSONEq(t, readFile(t, "../testdata/integration.json"), body)
 		})
 	})
 
 	t.Run("works correctly with subrouter - handles path prefix - gorilla mux", func(t *testing.T) {
-		muxRouter, swaggerRouter := setupSwagger(t)
+		muxRouter, oasRouter := setupSwagger(t)
 
 		muxSubRouter := muxRouter.NewRoute().Subrouter()
-		subRouter, err := swaggerRouter.SubRouter(gorilla.NewRouter(muxSubRouter), swagger.SubRouterOptions{
+		subRouter, err := oasRouter.SubRouter(gorilla.NewRouter(muxSubRouter), swagger.SubRouterOptions{
 			PathPrefix: "/prefix",
 		})
 		require.NoError(t, err)
@@ -60,15 +64,20 @@ func TestGorillaIntegration(t *testing.T) {
 		_, err = subRouter.AddRoute(http.MethodGet, "/foo", okHandler, swagger.Definitions{})
 		require.NoError(t, err)
 
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/hello", nil)
+		err = oasRouter.GenerateAndExposeOpenapi()
+		require.NoError(t, err)
 
-		muxRouter.ServeHTTP(w, r)
+		t.Run("correctly call router", func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/hello", nil)
 
-		require.Equal(t, http.StatusOK, w.Result().StatusCode)
+			muxRouter.ServeHTTP(w, r)
 
-		body := readBody(t, w.Result().Body)
-		require.Equal(t, "OK", body)
+			require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+			body := readBody(t, w.Result().Body)
+			require.Equal(t, "OK", body)
+		})
 
 		t.Run("correctly call sub router", func(t *testing.T) {
 			w := httptest.NewRecorder()
@@ -91,7 +100,7 @@ func TestGorillaIntegration(t *testing.T) {
 			require.Equal(t, http.StatusOK, w.Result().StatusCode)
 
 			body := readBody(t, w.Result().Body)
-			require.Equal(t, "{\"components\":{},\"info\":{\"title\":\"test swagger title\",\"version\":\"test swagger version\"},\"openapi\":\"3.0.0\",\"paths\":{\"/hello\":{\"get\":{\"responses\":{\"default\":{\"description\":\"\"}}}}}}", body)
+			require.JSONEq(t, readFile(t, "../testdata/intergation-subrouter.json"), body, body)
 		})
 	})
 }
@@ -127,7 +136,7 @@ func setupSwagger(t *testing.T) (*mux.Router, *SwaggerRouter) {
 	_, err = router.AddRawRoute(http.MethodGet, "/hello", okHandler, operation)
 	require.NoError(t, err)
 
-	err = router.GenerateAndExposeOpenapi()
+	_, err = router.AddRoute(http.MethodPost, "/hello/{value}", okHandler, swagger.Definitions{})
 	require.NoError(t, err)
 
 	return muxRouter, router
@@ -136,4 +145,13 @@ func setupSwagger(t *testing.T) (*mux.Router, *SwaggerRouter) {
 func okHandler(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`OK`))
+}
+
+func readFile(t *testing.T, path string) string {
+	t.Helper()
+
+	fileContent, err := os.ReadFile(path)
+	require.NoError(t, err)
+
+	return string(fileContent)
 }

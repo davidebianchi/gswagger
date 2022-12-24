@@ -38,7 +38,8 @@ func (r Router[HandlerFunc, Route]) AddRawRoute(method string, routePath string,
 		}
 	}
 	pathWithPrefix := path.Join(r.pathPrefix, routePath)
-	r.swaggerSchema.AddOperation(pathWithPrefix, method, op)
+	oasPath := r.router.TransformPathToOasPath(pathWithPrefix)
+	r.swaggerSchema.AddOperation(oasPath, method, op)
 
 	// Handle, when content-type is json, the request/response marshalling? Maybe with a specific option.
 	return r.router.AddRoute(method, pathWithPrefix, handler), nil
@@ -104,7 +105,8 @@ func (r Router[HandlerFunc, Route]) AddRoute(method string, path string, handler
 		return getZero[Route](), fmt.Errorf("%w: %s", ErrResponses, err)
 	}
 
-	err = r.resolveParameterSchema(pathParamsType, getPathParamsAutofilled(schema, path), operation)
+	oasPath := r.router.TransformPathToOasPath(path)
+	err = r.resolveParameterSchema(pathParamsType, getPathParamsAutoComplete(schema, oasPath), operation)
 	if err != nil {
 		return getZero[Route](), fmt.Errorf("%w: %s", ErrPathParams, err)
 	}
@@ -260,7 +262,7 @@ func (r Router[_, _]) addContentToOASSchema(content Content) (openapi3.Content, 
 	return oasContent, nil
 }
 
-func getPathParamsAutofilled(schema Definitions, path string) ParameterValue {
+func getPathParamsAutoComplete(schema Definitions, path string) ParameterValue {
 	if schema.PathParams == nil {
 		pathParams := strings.Split(path, "/")
 		for _, param := range pathParams {

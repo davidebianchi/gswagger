@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	oasEcho "github.com/davidebianchi/gswagger/support/echo"
@@ -22,19 +23,36 @@ const (
 
 type echoSwaggerRouter = swagger.Router[echo.HandlerFunc, *echo.Route]
 
-func TestIntegration(t *testing.T) {
+func TestEchoIntegration(t *testing.T) {
 	t.Run("router works correctly - echo", func(t *testing.T) {
-		echoRouter, _ := setupEchoSwagger(t)
+		echoRouter, oasRouter := setupEchoSwagger(t)
 
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/hello", nil)
+		err := oasRouter.GenerateAndExposeOpenapi()
+		require.NoError(t, err)
 
-		echoRouter.ServeHTTP(w, r)
+		t.Run("/hello", func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/hello", nil)
 
-		require.Equal(t, http.StatusOK, w.Result().StatusCode)
+			echoRouter.ServeHTTP(w, r)
 
-		body := readBody(t, w.Result().Body)
-		require.Equal(t, "OK", body)
+			require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+			body := readBody(t, w.Result().Body)
+			require.Equal(t, "OK", body)
+		})
+
+		t.Run("/hello/:value", func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodPost, "/hello/something", nil)
+
+			echoRouter.ServeHTTP(w, r)
+
+			require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+			body := readBody(t, w.Result().Body)
+			require.Equal(t, "OK", body)
+		})
 
 		t.Run("and generate swagger", func(t *testing.T) {
 			w := httptest.NewRecorder()
@@ -45,14 +63,14 @@ func TestIntegration(t *testing.T) {
 			require.Equal(t, http.StatusOK, w.Result().StatusCode)
 
 			body := readBody(t, w.Result().Body)
-			require.Equal(t, "{\"components\":{},\"info\":{\"title\":\"test swagger title\",\"version\":\"test swagger version\"},\"openapi\":\"3.0.0\",\"paths\":{\"/hello\":{\"get\":{\"responses\":{\"default\":{\"description\":\"\"}}}}}}", body)
+			require.JSONEq(t, readFile(t, "../testdata/integration.json"), body)
 		})
 	})
 
 	t.Run("works correctly with subrouter - handles path prefix - echo", func(t *testing.T) {
-		eRouter, swaggerRouter := setupEchoSwagger(t)
+		eRouter, oasRouter := setupEchoSwagger(t)
 
-		subRouter, err := swaggerRouter.SubRouter(oasEcho.NewRouter(eRouter), swagger.SubRouterOptions{
+		subRouter, err := oasRouter.SubRouter(oasEcho.NewRouter(eRouter), swagger.SubRouterOptions{
 			PathPrefix: "/prefix",
 		})
 		require.NoError(t, err)
@@ -60,15 +78,20 @@ func TestIntegration(t *testing.T) {
 		_, err = subRouter.AddRoute(http.MethodGet, "/foo", okHandler, swagger.Definitions{})
 		require.NoError(t, err)
 
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "/hello", nil)
+		err = oasRouter.GenerateAndExposeOpenapi()
+		require.NoError(t, err)
 
-		eRouter.ServeHTTP(w, r)
+		t.Run("correctly call /hello", func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/hello", nil)
 
-		require.Equal(t, http.StatusOK, w.Result().StatusCode)
+			eRouter.ServeHTTP(w, r)
 
-		body := readBody(t, w.Result().Body)
-		require.Equal(t, "OK", body)
+			require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+			body := readBody(t, w.Result().Body)
+			require.Equal(t, "OK", body)
+		})
 
 		t.Run("correctly call sub router", func(t *testing.T) {
 			w := httptest.NewRecorder()
@@ -91,7 +114,7 @@ func TestIntegration(t *testing.T) {
 			require.Equal(t, http.StatusOK, w.Result().StatusCode)
 
 			body := readBody(t, w.Result().Body)
-			require.Equal(t, "{\"components\":{},\"info\":{\"title\":\"test swagger title\",\"version\":\"test swagger version\"},\"openapi\":\"3.0.0\",\"paths\":{\"/hello\":{\"get\":{\"responses\":{\"default\":{\"description\":\"\"}}}}}}", body)
+			require.JSONEq(t, readFile(t, "../testdata/intergation-subrouter.json"), body, body)
 		})
 	})
 }
@@ -127,7 +150,7 @@ func setupEchoSwagger(t *testing.T) (*echo.Echo, *echoSwaggerRouter) {
 	_, err = router.AddRawRoute(http.MethodGet, "/hello", okHandler, operation)
 	require.NoError(t, err)
 
-	err = router.GenerateAndExposeOpenapi()
+	_, err = router.AddRoute(http.MethodPost, "/hello/:value", okHandler, swagger.Definitions{})
 	require.NoError(t, err)
 
 	return e, router
@@ -135,4 +158,13 @@ func setupEchoSwagger(t *testing.T) (*echo.Echo, *echoSwaggerRouter) {
 
 func okHandler(c echo.Context) error {
 	return c.String(http.StatusOK, "OK")
+}
+
+func readFile(t *testing.T, path string) string {
+	t.Helper()
+
+	fileContent, err := os.ReadFile(path)
+	require.NoError(t, err)
+
+	return string(fileContent)
 }

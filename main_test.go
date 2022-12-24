@@ -336,7 +336,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 			w.Write([]byte("ok"))
 		}, Definitions{})
 
-		mSubRouter := mRouter.PathPrefix("/prefix").Subrouter()
+		mSubRouter := mRouter.NewRoute().Subrouter()
 		subrouter, err := router.SubRouter(gorilla.NewRouter(mSubRouter), SubRouterOptions{
 			PathPrefix: "/prefix",
 		})
@@ -370,6 +370,30 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		actual, err := os.ReadFile("testdata/subrouter.json")
 		require.NoError(t, err)
 		require.JSONEq(t, string(actual), body)
+
+		t.Run("test request /prefix", func(t *testing.T) {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, "/prefix", nil)
+			mRouter.ServeHTTP(w, req)
+
+			require.Equal(t, http.StatusOK, w.Result().StatusCode)
+		})
+
+		t.Run("test request /prefix/taz", func(t *testing.T) {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, "/prefix/taz", nil)
+			mRouter.ServeHTTP(w, req)
+
+			require.Equal(t, http.StatusOK, w.Result().StatusCode)
+		})
+
+		t.Run("test request /foo", func(t *testing.T) {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, "/foo", nil)
+			mRouter.ServeHTTP(w, req)
+
+			require.Equal(t, http.StatusOK, w.Result().StatusCode)
+		})
 	})
 
 	t.Run("ok - new router with path prefix", func(t *testing.T) {
@@ -405,7 +429,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		body := readBody(t, w.Result().Body)
 		actual, err := os.ReadFile("testdata/router_with_prefix.json")
 		require.NoError(t, err)
-		require.JSONEq(t, string(actual), body)
+		require.JSONEq(t, string(actual), body, body)
 	})
 }
 
