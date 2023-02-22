@@ -8,7 +8,7 @@ require (
 	github.com/go-openapi/swag v0.21.1 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
-	github.com/labstack/echo/v4 v4.10.1
+	github.com/labstack/echo/v4 v4.10.2
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mia-platform/jsonschema v0.1.0
 	github.com/stretchr/testify v1.8.1
