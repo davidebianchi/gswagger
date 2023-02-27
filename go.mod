@@ -11,7 +11,7 @@ require (
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mia-platform/jsonschema v0.1.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 )
 
 require github.com/gofiber/fiber/v2 v2.41.0
