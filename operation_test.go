@@ -27,7 +27,7 @@ func TestNewOperation(t *testing.T) {
 				operation.Responses = openapi3.NewResponses()
 				return operation
 			},
-			expectedJSON: `{"components":{},"info":{"title":"test swagger title","version":"test swagger version"},"openapi":"3.0.0","paths":{"/":{"post":{"requestBody":{"content":{"application/json":{"schema":{"properties":{"bar":{"maximum":15,"minimum":5,"type":"integer"},"foo":{"type":"string"}},"type":"object"}}}},"responses":{"default":{"description":""}}}}}}`,
+			expectedJSON: `{"info":{"title":"test swagger title","version":"test swagger version"},"openapi":"3.0.0","paths":{"/":{"post":{"requestBody":{"content":{"application/json":{"schema":{"properties":{"bar":{"maximum":15,"minimum":5,"type":"integer"},"foo":{"type":"string"}},"type":"object"}}}},"responses":{"default":{"description":""}}}}}}`,
 		},
 		{
 			name: "add response",
@@ -36,7 +36,7 @@ func TestNewOperation(t *testing.T) {
 				operation.AddResponse(200, response)
 				return operation
 			},
-			expectedJSON: `{"components":{},"info":{"title":"test swagger title","version":"test swagger version"},"openapi":"3.0.0","paths":{"/":{"post":{"responses":{"200":{"content":{"application/json":{"schema":{"properties":{"bar":{"maximum":15,"minimum":5,"type":"integer"},"foo":{"type":"string"}},"type":"object"}}},"description":""}}}}}}`,
+			expectedJSON: `{"info":{"title":"test swagger title","version":"test swagger version"},"openapi":"3.0.0","paths":{"/":{"post":{"responses":{"200":{"content":{"application/json":{"schema":{"properties":{"bar":{"maximum":15,"minimum":5,"type":"integer"},"foo":{"type":"string"}},"type":"object"}}},"description":""}}}}}}`,
 		},
 	}
 
