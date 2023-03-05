@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## 0.8.0 - 24-12-2022
+### Updated
+
+- update kin-openapi to 0.114.0: this change removes components from exposed oas (if not manually set). In this update of kin-openapi, there is a breaking change with the T struct, which now accepts component as pointer.
 
 ## 0.8.0 - 23-12-2022
 

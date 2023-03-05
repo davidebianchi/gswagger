@@ -193,7 +193,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 					Title:   "title",
 					Version: "version",
 				},
-				Components: openapi3.Components{
+				Components: &openapi3.Components{
 					Schemas: map[string]*openapi3.SchemaRef{
 						"&%": {},
 					},

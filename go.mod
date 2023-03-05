@@ -3,7 +3,7 @@ module github.com/davidebianchi/gswagger
 go 1.19
 
 require (
-	github.com/getkin/kin-openapi v0.112.0
+	github.com/getkin/kin-openapi v0.114.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-openapi/swag v0.21.1 // indirect
 	github.com/gorilla/mux v1.8.0
@@ -29,6 +29,7 @@ require (
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
+	github.com/perimeterx/marshmallow v1.1.4 // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
