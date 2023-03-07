@@ -106,14 +106,24 @@ This configuration will output the schema shown [here](./support/gorilla/testdat
 
 ## Auto generated path params schema
 
-The path params, if not set in schema, are auto generated from the path. Currently, it is supported only the path params like `{myPath}`.
+The path params, if not set in schema, are auto generated from the path.
+The format of the path parameters depends on the router library you are using, as explained below.
 
-For example, with this use case, you can see the [example test](./support/gorilla/examples_test.go).
+### Gorilla Mux
+
+Gorilla Mux supports the path parameters as `{someParam}`, for example as in `/users/{userId}`.
+
+Here is the [example test](./support/gorilla/examples_test.go).
 
 The generated oas schema will contains `userId`, `carId` and `driverId` as path params set to string.
 If only one params is set, you must specify manually all the path params.
 
 The generated OAS for this test case is visible [here](./support/gorilla/testdata/examples-users.json).
+
+### Fiber
+Fiber supports the path parameters as `:someParam`, for example as in `/users/:userId`.
+
+Here is the [example test](./support/fiber/integration_test.go)
 
 ## SubRouter
 
