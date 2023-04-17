@@ -20,7 +20,6 @@ const formDataType = "multipart/form-data"
 type TestRouter = Router[gorilla.HandlerFunc, gorilla.Route]
 
 func TestAddRoutes(t *testing.T) {
-
 	type User struct {
 		Name        string   `json:"name" jsonschema:"title=The user name,required" jsonschema_extras:"example=Jane"`
 		PhoneNumber int      `json:"phone" jsonschema:"title=mobile number of user"`
@@ -434,6 +433,66 @@ func TestAddRoutes(t *testing.T) {
 			},
 			testPath:     "/users",
 			fixturesPath: "testdata/tags.json",
+		},
+		{
+			name: "schema with security",
+			routes: func(t *testing.T, router *TestRouter) {
+				_, err := router.AddRoute(http.MethodGet, "/users", okHandler, Definitions{
+					Security: SecurityRequirements{
+						SecurityRequirement{
+							"api_key": []string{},
+							"auth": []string{
+								"resource.write",
+							},
+						},
+					},
+				})
+				require.NoError(t, err)
+			},
+			testPath:     "/users",
+			fixturesPath: "testdata/security.json",
+		},
+		{
+			name: "schema with extension",
+			routes: func(t *testing.T, router *TestRouter) {
+				_, err := router.AddRoute(http.MethodGet, "/users", okHandler, Definitions{
+					Extensions: map[string]interface{}{
+						"x-extension-field": map[string]string{
+							"foo": "bar",
+						},
+					},
+				})
+				require.NoError(t, err)
+			},
+			testPath:     "/users",
+			fixturesPath: "testdata/extension.json",
+		},
+		{
+			name: "invalid extension - not starts with x-",
+			routes: func(t *testing.T, router *TestRouter) {
+				_, err := router.AddRoute(http.MethodGet, "/", okHandler, Definitions{
+					Extensions: map[string]interface{}{
+						"extension-field": map[string]string{
+							"foo": "bar",
+						},
+					},
+				})
+				require.EqualError(t, err, "extra sibling fields: [extension-field]")
+			},
+			fixturesPath: "testdata/empty.json",
+		},
+		{
+			name: "schema with summary, description, deprecated and operationID",
+			routes: func(t *testing.T, router *TestRouter) {
+				_, err := router.AddRoute(http.MethodGet, "/users", okHandler, Definitions{
+					Summary:     "small description",
+					Description: "this is the long route description",
+					Deprecated:  true,
+				})
+				require.NoError(t, err)
+			},
+			testPath:     "/users",
+			fixturesPath: "testdata/users-deprecated-with-description.json",
 		},
 	}
 

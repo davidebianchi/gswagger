@@ -71,15 +71,42 @@ type ContentValue struct {
 	Description string
 }
 
+type SecurityRequirements []SecurityRequirement
+type SecurityRequirement map[string][]string
+
 // Definitions of the route.
+// To see how to use, refer to https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md
 type Definitions struct {
+	// Specification extensions https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#specification-extensions
+	Extensions map[string]interface{}
+	// Optional field for documentation
 	Tags        []string
+	Summary     string
+	Description string
+	Deprecated  bool
+
+	// PathParams contains the path parameters. If empty is autocompleted from the path
 	PathParams  ParameterValue
 	Querystring ParameterValue
 	Headers     ParameterValue
 	Cookies     ParameterValue
 	RequestBody *ContentValue
 	Responses   map[int]ContentValue
+
+	Security SecurityRequirements
+}
+
+func newOperationFromDefinition(schema Definitions) Operation {
+	operation := NewOperation()
+	operation.Responses = make(openapi3.Responses)
+	operation.Tags = schema.Tags
+	operation.Extensions = schema.Extensions
+	operation.addSecurityRequirements(schema.Security)
+	operation.Description = schema.Description
+	operation.Summary = schema.Summary
+	operation.Deprecated = schema.Deprecated
+
+	return operation
 }
 
 const (
@@ -91,9 +118,7 @@ const (
 
 // AddRoute add a route with json schema inferred by passed schema.
 func (r Router[HandlerFunc, Route]) AddRoute(method string, path string, handler HandlerFunc, schema Definitions) (Route, error) {
-	operation := NewOperation()
-	operation.Responses = make(openapi3.Responses)
-	operation.Tags = schema.Tags
+	operation := newOperationFromDefinition(schema)
 
 	err := r.resolveRequestBodySchema(schema.RequestBody, operation)
 	if err != nil {

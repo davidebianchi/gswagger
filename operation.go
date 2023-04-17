@@ -37,3 +37,12 @@ func (o *Operation) AddResponse(status int, response *openapi3.Response) {
 	}
 	o.Operation.AddResponse(status, response)
 }
+
+func (o *Operation) addSecurityRequirements(securityRequirements SecurityRequirements) {
+	if securityRequirements != nil && o.Security == nil {
+		o.Security = openapi3.NewSecurityRequirements()
+	}
+	for _, securityRequirement := range securityRequirements {
+		o.Security.With(openapi3.SecurityRequirement(securityRequirement))
+	}
+}
