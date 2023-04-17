@@ -1,0 +1,26 @@
+{
+  "info": {
+    "title": "test swagger title",
+    "version": "test swagger version"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/users": {
+      "get": {
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "api_key": [],
+            "auth": [
+              "resource.write"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
