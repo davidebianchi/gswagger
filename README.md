@@ -25,6 +25,14 @@ To convert struct to schemas, we use [jsonschema] library.
 The struct must contains the appropriate struct tags to be inserted in json schema to generate the schema dynamically.  
 It is always possible to add a totally custom swagger schema using [kin-openapi].
 
+## Install
+
+To use it, install with
+
+```sh
+go get github.com/davidebianchi/gswagger
+```
+
 ## Usage
 
 An example usage of this lib with gorilla mux:
