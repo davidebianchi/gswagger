@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/mia-platform/jsonschema"
+	"github.com/invopop/jsonschema"
 )
 
 var (

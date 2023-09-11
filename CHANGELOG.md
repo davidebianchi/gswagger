@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Updated
+
+- change jsonschema lib to use again `invopop/jsonschema` one, since now it support additionalProperties instead of patternProperties
+
 ## 0.9.0 - 17-04-2023
 
 ### Added
