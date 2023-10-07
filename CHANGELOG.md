@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### BREAKING CHANGES
+
+- remove support to golang 1.19
+
 ### Updated
 
 - change jsonschema lib to use again `invopop/jsonschema` one, since now it support additionalProperties instead of patternProperties
