@@ -923,7 +923,7 @@ func TestResolveResponsesSchema(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			operation := NewOperation()
-			operation.Responses = make(openapi3.Responses)
+			operation.Responses = &openapi3.Responses{}
 
 			err := router.resolveResponsesSchema(test.responsesSchema, operation)
 

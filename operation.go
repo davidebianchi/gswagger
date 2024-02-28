@@ -28,7 +28,7 @@ func (o *Operation) AddRequestBody(requestBody *openapi3.RequestBody) {
 // but it is always possible to add it manually.
 func (o *Operation) AddResponse(status int, response *openapi3.Response) {
 	if o.Responses == nil {
-		o.Responses = make(openapi3.Responses)
+		o.Responses = &openapi3.Responses{}
 	}
 	if response.Description == nil {
 		// a description is required by kin openapi, so we set an empty description
