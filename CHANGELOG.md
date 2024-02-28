@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.10.0 - 28-02-2024
+
 ### BREAKING CHANGES
 
 - remove support to golang 1.19
