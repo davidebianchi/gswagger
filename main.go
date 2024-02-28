@@ -112,7 +112,7 @@ func generateNewValidOpenapi(swagger *openapi3.T) (*openapi3.T, error) {
 		swagger.OpenAPI = defaultOpenapiVersion
 	}
 	if swagger.Paths == nil {
-		swagger.Paths = openapi3.Paths{}
+		swagger.Paths = &openapi3.Paths{}
 	}
 
 	if swagger.Info == nil {

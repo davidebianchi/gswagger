@@ -98,7 +98,7 @@ type Definitions struct {
 
 func newOperationFromDefinition(schema Definitions) Operation {
 	operation := NewOperation()
-	operation.Responses = make(openapi3.Responses)
+	operation.Responses = &openapi3.Responses{}
 	operation.Tags = schema.Tags
 	operation.Extensions = schema.Extensions
 	operation.addSecurityRequirements(schema.Security)

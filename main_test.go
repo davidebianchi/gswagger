@@ -26,7 +26,7 @@ func TestNewRouter(t *testing.T) {
 	}
 	openapi := &openapi3.T{
 		Info:  info,
-		Paths: openapi3.Paths{},
+		Paths: &openapi3.Paths{},
 	}
 
 	t.Run("not ok - invalid Openapi option", func(t *testing.T) {
@@ -179,7 +179,7 @@ func TestGenerateValidSwagger(t *testing.T) {
 		require.Equal(t, &openapi3.T{
 			OpenAPI: defaultOpenapiVersion,
 			Info:    info,
-			Paths:   openapi3.Paths{},
+			Paths:   &openapi3.Paths{},
 		}, swagger)
 	})
 }
