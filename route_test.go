@@ -48,6 +48,7 @@ func TestAddRoutes(t *testing.T) {
 		FirstName string      `json:"firstName" jsonschema:"title=user first name"`
 		LastName  string      `json:"lastName" jsonschema:"title=user last name"`
 		Metadata  interface{} `json:"metadata,omitempty" jsonschema:"title=custom properties,oneof_type=string;number"`
+		UserType  string      `json:"userType,omitempty" jsonschema:"title=type of user,enum=simple,enum=advanced"`
 	}
 
 	okHandler := func(w http.ResponseWriter, req *http.Request) {
@@ -376,7 +377,7 @@ func TestAddRoutes(t *testing.T) {
 			fixturesPath: "testdata/anyof.json",
 		},
 		{
-			name: "oneOf support on properties",
+			name: "oneOf and enum are supported on properties",
 			routes: func(t *testing.T, router *TestRouter) {
 				_, err := router.AddRoute(http.MethodPost, "/user-profile", okHandler, Definitions{
 					RequestBody: &ContentValue{
