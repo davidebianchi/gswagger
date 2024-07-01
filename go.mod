@@ -13,7 +13,7 @@ require (
 )
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.4
+	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/invopop/jsonschema v0.12.0
 )
 
