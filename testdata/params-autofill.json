@@ -57,6 +57,33 @@
           }
         }
       }
+    },
+    "/files/{name}.{extension}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "extension",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
     }
   }
 }
