@@ -187,7 +187,7 @@ func TestAddRoutes(t *testing.T) {
 			fixturesPath: "testdata/params.json",
 		},
 		{
-			name: "schema without params autofilled",
+			name: "schema without explicit params autofill them",
 			routes: func(t *testing.T, router *TestRouter) {
 				_, err := router.AddRoute(http.MethodGet, "/users/{userId}", okHandler, Definitions{
 					Querystring: ParameterValue{
@@ -200,8 +200,11 @@ func TestAddRoutes(t *testing.T) {
 
 				_, err = router.AddRoute(http.MethodGet, "/cars/{carId}/drivers/{driverId}", okHandler, Definitions{})
 				require.NoError(t, err)
+
+				_, err = router.AddRoute(http.MethodGet, "/files/{name}.{extension}", okHandler, Definitions{})
+				require.NoError(t, err)
 			},
-			testPath:     "/users/12",
+			testPath:     "/files/myid.yaml",
 			fixturesPath: "testdata/params-autofill.json",
 		},
 		{
@@ -1116,5 +1119,63 @@ func getBaseSwagger(t *testing.T) *openapi3.T {
 			Title:   "test swagger title",
 			Version: "test swagger version",
 		},
+	}
+}
+
+func TestGetPathParamsAutoComplete(t *testing.T) {
+	testCases := map[string]struct {
+		schemaDefinition Definitions
+		path             string
+		expected         ParameterValue
+	}{
+		"no path params": {
+			schemaDefinition: Definitions{},
+			path:             "/users",
+			expected:         nil,
+		},
+		"with path params": {
+			schemaDefinition: Definitions{},
+			path:             "/users/{userId}",
+			expected: ParameterValue{
+				"userId": {
+					Schema: &Schema{Value: ""},
+				},
+			},
+		},
+		"with multiple path params": {
+			schemaDefinition: Definitions{},
+			path:             "/foo/{bar}.{taz}",
+			expected: ParameterValue{
+				"bar": {
+					Schema: &Schema{Value: ""},
+				},
+				"taz": {
+					Schema: &Schema{Value: ""},
+				},
+			},
+		},
+		"with nested multiple path params": {
+			schemaDefinition: Definitions{},
+			path:             "/foo/{bar}.{taz}/{baz}/ok",
+			expected: ParameterValue{
+				"bar": {
+					Schema: &Schema{Value: ""},
+				},
+				"taz": {
+					Schema: &Schema{Value: ""},
+				},
+				"baz": {
+					Schema: &Schema{Value: ""},
+				},
+			},
+		},
+	}
+
+	for name, test := range testCases {
+		t.Run(name, func(t *testing.T) {
+			actual := getPathParamsAutoComplete(test.schemaDefinition, test.path)
+
+			require.Equal(t, test.expected, actual)
+		})
 	}
 }

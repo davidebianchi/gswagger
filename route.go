@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"path"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -289,15 +290,18 @@ func (r Router[_, _]) addContentToOASSchema(content Content) (openapi3.Content, 
 
 func getPathParamsAutoComplete(schema Definitions, path string) ParameterValue {
 	if schema.PathParams == nil {
-		pathParams := strings.Split(path, "/")
-		for _, param := range pathParams {
-			if strings.HasPrefix(param, "{") && strings.HasSuffix(param, "}") {
-				if schema.PathParams == nil {
-					schema.PathParams = make(ParameterValue)
-				}
-				param = strings.Replace(param, "{", "", 1)
-				param = strings.Replace(param, "}", "", 1)
-				schema.PathParams[param] = Parameter{
+		re := regexp.MustCompile(`\{([^}]+)\}`)
+		segments := strings.Split(path, "/")
+		for _, segment := range segments {
+			params := re.FindAllStringSubmatch(segment, -1)
+			if len(params) == 0 {
+				continue
+			}
+			if schema.PathParams == nil {
+				schema.PathParams = make(ParameterValue)
+			}
+			for _, param := range params {
+				schema.PathParams[param[1]] = Parameter{
 					Schema: &Schema{Value: ""},
 				}
 			}
