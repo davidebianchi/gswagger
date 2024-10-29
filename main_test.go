@@ -33,7 +33,7 @@ func TestNewRouter(t *testing.T) {
 		r, err := NewRouter(mAPIRouter, Options{})
 
 		require.Nil(t, r)
-		require.EqualError(t, err, fmt.Sprintf("%s: swagger is required", ErrValidatingSwagger))
+		require.EqualError(t, err, fmt.Sprintf("%s: swagger is required", ErrValidatingOAS))
 	})
 
 	t.Run("ok - with default context", func(t *testing.T) {
@@ -204,7 +204,7 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 
 		err = router.GenerateAndExposeOpenapi()
 		require.Error(t, err)
-		require.True(t, strings.HasPrefix(err.Error(), fmt.Sprintf("%s:", ErrValidatingSwagger)))
+		require.True(t, strings.HasPrefix(err.Error(), fmt.Sprintf("%s:", ErrValidatingOAS)))
 	})
 
 	t.Run("correctly expose json documentation from loaded swagger file", func(t *testing.T) {
