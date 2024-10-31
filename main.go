@@ -18,9 +18,9 @@ var (
 	// ErrValidatingOAS throws when given openapi params are not correct.
 	ErrValidatingOAS = errors.New("fails to validate openapi")
 
-	// Deprecated: ErrGenerateSwagger has been deprecated, use ErrGenerateOAS instead
+	// Deprecated: ErrGenerateSwagger has been deprecated, use ErrGenerateOAS instead.
 	ErrGenerateSwagger = ErrGenerateOAS
-	// Deprecated: ErrValidatingSwagger has been deprecated, use ErrValidatingOAS instead
+	// Deprecated: ErrValidatingSwagger has been deprecated, use ErrValidatingOAS instead.
 	ErrValidatingSwagger = ErrValidatingOAS
 )
 
