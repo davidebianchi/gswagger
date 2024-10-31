@@ -33,7 +33,7 @@ func TestNewRouter(t *testing.T) {
 		r, err := NewRouter(mAPIRouter, Options{})
 
 		require.Nil(t, r)
-		require.EqualError(t, err, fmt.Sprintf("%s: swagger is required", ErrValidatingOAS))
+		require.EqualError(t, err, fmt.Sprintf("%s: openapi is required", ErrValidatingOAS))
 	})
 
 	t.Run("ok - with default context", func(t *testing.T) {
@@ -119,50 +119,50 @@ func TestNewRouter(t *testing.T) {
 }
 
 func TestGenerateValidSwagger(t *testing.T) {
-	t.Run("not ok - empty swagger info", func(t *testing.T) {
-		swagger := &openapi3.T{}
+	t.Run("not ok - empty openapi info", func(t *testing.T) {
+		openapi := &openapi3.T{}
 
-		swagger, err := generateNewValidOpenapi(swagger)
-		require.Nil(t, swagger)
-		require.EqualError(t, err, "swagger info is required")
+		openapi, err := generateNewValidOpenapi(openapi)
+		require.Nil(t, openapi)
+		require.EqualError(t, err, "openapi info is required")
 	})
 
 	t.Run("not ok - empty info title", func(t *testing.T) {
-		swagger := &openapi3.T{
+		openapi := &openapi3.T{
 			Info: &openapi3.Info{},
 		}
 
-		swagger, err := generateNewValidOpenapi(swagger)
-		require.Nil(t, swagger)
-		require.EqualError(t, err, "swagger info title is required")
+		openapi, err := generateNewValidOpenapi(openapi)
+		require.Nil(t, openapi)
+		require.EqualError(t, err, "openapi info title is required")
 	})
 
 	t.Run("not ok - empty info version", func(t *testing.T) {
-		swagger := &openapi3.T{
+		openapi := &openapi3.T{
 			Info: &openapi3.Info{
 				Title: "title",
 			},
 		}
 
-		swagger, err := generateNewValidOpenapi(swagger)
-		require.Nil(t, swagger)
-		require.EqualError(t, err, "swagger info version is required")
+		openapi, err := generateNewValidOpenapi(openapi)
+		require.Nil(t, openapi)
+		require.EqualError(t, err, "openapi info version is required")
 	})
 
-	t.Run("ok - custom swagger", func(t *testing.T) {
-		swagger := &openapi3.T{
+	t.Run("ok - custom openapi", func(t *testing.T) {
+		openapi := &openapi3.T{
 			Info: &openapi3.Info{},
 		}
 
-		swagger, err := generateNewValidOpenapi(swagger)
-		require.Nil(t, swagger)
-		require.EqualError(t, err, "swagger info title is required")
+		openapi, err := generateNewValidOpenapi(openapi)
+		require.Nil(t, openapi)
+		require.EqualError(t, err, "openapi info title is required")
 	})
 
-	t.Run("not ok - swagger is required", func(t *testing.T) {
-		swagger, err := generateNewValidOpenapi(nil)
-		require.Nil(t, swagger)
-		require.EqualError(t, err, "swagger is required")
+	t.Run("not ok - openapi is required", func(t *testing.T) {
+		openapi, err := generateNewValidOpenapi(nil)
+		require.Nil(t, openapi)
+		require.EqualError(t, err, "openapi is required")
 	})
 
 	t.Run("ok", func(t *testing.T) {
@@ -170,22 +170,22 @@ func TestGenerateValidSwagger(t *testing.T) {
 			Title:   "my title",
 			Version: "my version",
 		}
-		swagger := &openapi3.T{
+		openapi := &openapi3.T{
 			Info: info,
 		}
 
-		swagger, err := generateNewValidOpenapi(swagger)
+		openapi, err := generateNewValidOpenapi(openapi)
 		require.NoError(t, err)
 		require.Equal(t, &openapi3.T{
 			OpenAPI: defaultOpenapiVersion,
 			Info:    info,
 			Paths:   &openapi3.Paths{},
-		}, swagger)
+		}, openapi)
 	})
 }
 
 func TestGenerateAndExposeSwagger(t *testing.T) {
-	t.Run("fails swagger validation", func(t *testing.T) {
+	t.Run("fails openapi validation", func(t *testing.T) {
 		mRouter := mux.NewRouter()
 		router, err := NewRouter(gorilla.NewRouter(mRouter), Options{
 			Openapi: &openapi3.T{
@@ -207,14 +207,14 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		require.True(t, strings.HasPrefix(err.Error(), fmt.Sprintf("%s:", ErrValidatingOAS)))
 	})
 
-	t.Run("correctly expose json documentation from loaded swagger file", func(t *testing.T) {
+	t.Run("correctly expose json documentation from loaded openapi file", func(t *testing.T) {
 		mRouter := mux.NewRouter()
 
-		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
+		openapi, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
 		router, err := NewRouter(gorilla.NewRouter(mRouter), Options{
-			Openapi: swagger,
+			Openapi: openapi,
 		})
 		require.NoError(t, err)
 
@@ -234,14 +234,14 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		require.JSONEq(t, string(actual), body)
 	})
 
-	t.Run("correctly expose json documentation from loaded swagger file - custom path", func(t *testing.T) {
+	t.Run("correctly expose json documentation from loaded openapi file - custom path", func(t *testing.T) {
 		mRouter := mux.NewRouter()
 
-		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
+		openapi, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
 		router, err := NewRouter(gorilla.NewRouter(mRouter), Options{
-			Openapi:               swagger,
+			Openapi:               openapi,
 			JSONDocumentationPath: "/custom/path",
 		})
 		require.NoError(t, err)
@@ -262,14 +262,14 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		require.JSONEq(t, string(actual), body)
 	})
 
-	t.Run("correctly expose yaml documentation from loaded swagger file", func(t *testing.T) {
+	t.Run("correctly expose yaml documentation from loaded openapi file", func(t *testing.T) {
 		mRouter := mux.NewRouter()
 
-		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
+		openapi, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
 		router, err := NewRouter(gorilla.NewRouter(mRouter), Options{
-			Openapi: swagger,
+			Openapi: openapi,
 		})
 		require.NoError(t, err)
 
@@ -289,14 +289,14 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		require.YAMLEq(t, string(expected), body, string(body))
 	})
 
-	t.Run("correctly expose yaml documentation from loaded swagger file - custom path", func(t *testing.T) {
+	t.Run("correctly expose yaml documentation from loaded openapi file - custom path", func(t *testing.T) {
 		mRouter := mux.NewRouter()
 
-		swagger, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
+		openapi, err := openapi3.NewLoader().LoadFromFile("testdata/users_employees.json")
 		require.NoError(t, err)
 
 		router, err := NewRouter(gorilla.NewRouter(mRouter), Options{
-			Openapi:               swagger,
+			Openapi:               openapi,
 			YAMLDocumentationPath: "/custom/path",
 		})
 		require.NoError(t, err)
@@ -323,8 +323,8 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		router, err := NewRouter(gorilla.NewRouter(mRouter), Options{
 			Openapi: &openapi3.T{
 				Info: &openapi3.Info{
-					Title:   "test swagger title",
-					Version: "test swagger version",
+					Title:   "test openapi title",
+					Version: "test openapi version",
 				},
 			},
 			JSONDocumentationPath: "/custom/path",
@@ -402,8 +402,8 @@ func TestGenerateAndExposeSwagger(t *testing.T) {
 		router, err := NewRouter(gorilla.NewRouter(mRouter), Options{
 			Openapi: &openapi3.T{
 				Info: &openapi3.Info{
-					Title:   "test swagger title",
-					Version: "test swagger version",
+					Title:   "test openapi title",
+					Version: "test openapi version",
 				},
 			},
 			JSONDocumentationPath: "/custom/path",

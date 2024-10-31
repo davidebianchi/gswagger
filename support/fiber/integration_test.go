@@ -19,8 +19,8 @@ import (
 type SwaggerRouter = swagger.Router[oasFiber.HandlerFunc, oasFiber.Route]
 
 const (
-	swaggerOpenapiTitle   = "test swagger title"
-	swaggerOpenapiVersion = "test swagger version"
+	swaggerOpenapiTitle   = "test openapi title"
+	swaggerOpenapiVersion = "test openapi version"
 )
 
 func TestFiberIntegration(t *testing.T) {

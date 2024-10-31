@@ -533,7 +533,7 @@ func TestAddRoutes(t *testing.T) {
 				require.Equal(t, "OK", body)
 			}
 
-			t.Run("and generate swagger documentation in json", func(t *testing.T) {
+			t.Run("and generate openapi documentation in json", func(t *testing.T) {
 				w := httptest.NewRecorder()
 				req := httptest.NewRequest(http.MethodGet, DefaultJSONDocumentationPath, nil)
 
@@ -1116,8 +1116,8 @@ func getBaseSwagger(t *testing.T) *openapi3.T {
 
 	return &openapi3.T{
 		Info: &openapi3.Info{
-			Title:   "test swagger title",
-			Version: "test swagger version",
+			Title:   "test openapi title",
+			Version: "test openapi version",
 		},
 	}
 }

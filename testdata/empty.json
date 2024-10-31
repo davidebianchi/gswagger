@@ -1,7 +1,7 @@
 {
   "info": {
-    "title": "test swagger title",
-    "version": "test swagger version"
+    "title": "test openapi title",
+    "version": "test openapi version"
   },
   "openapi": "3.0.0",
   "paths": {}

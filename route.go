@@ -24,7 +24,7 @@ var (
 )
 
 // AddRawRoute add route to router with specific method, path and handler. Add the
-// router also to the swagger schema, after validating it
+// router also to the openapi schema, after validating it
 func (r Router[HandlerFunc, Route]) AddRawRoute(method string, routePath string, handler HandlerFunc, operation Operation) (Route, error) {
 	op := operation.Operation
 	if op != nil {
