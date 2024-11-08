@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	swaggerOpenapiTitle   = "test swagger title"
-	swaggerOpenapiVersion = "test swagger version"
+	swaggerOpenapiTitle   = "test openapi title"
+	swaggerOpenapiVersion = "test openapi version"
 )
 
 type SwaggerRouter = swagger.Router[gorilla.HandlerFunc, gorilla.Route]

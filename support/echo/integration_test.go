@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	swaggerOpenapiTitle   = "test swagger title"
-	swaggerOpenapiVersion = "test swagger version"
+	swaggerOpenapiTitle   = "test openapi title"
+	swaggerOpenapiVersion = "test openapi version"
 )
 
 type echoSwaggerRouter = swagger.Router[echo.HandlerFunc, *echo.Route]

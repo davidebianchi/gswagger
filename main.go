@@ -13,21 +13,26 @@ import (
 )
 
 var (
-	// ErrGenerateSwagger throws when fails the marshalling of the swagger struct.
-	ErrGenerateSwagger = errors.New("fail to generate swagger")
-	// ErrValidatingSwagger throws when given swagger params are not correct.
-	ErrValidatingSwagger = errors.New("fails to validate swagger")
+	// ErrGenerateOAS throws when fails the marshalling of the swagger struct.
+	ErrGenerateOAS = errors.New("fail to generate openapi")
+	// ErrValidatingOAS throws when given openapi params are not correct.
+	ErrValidatingOAS = errors.New("fails to validate openapi")
+
+	// Deprecated: ErrGenerateSwagger has been deprecated, use ErrGenerateOAS instead.
+	ErrGenerateSwagger = ErrGenerateOAS
+	// Deprecated: ErrValidatingSwagger has been deprecated, use ErrValidatingOAS instead.
+	ErrValidatingSwagger = ErrValidatingOAS
 )
 
 const (
-	// DefaultJSONDocumentationPath is the path of the swagger documentation in json format.
+	// DefaultJSONDocumentationPath is the path of the openapi documentation in json format.
 	DefaultJSONDocumentationPath = "/documentation/json"
-	// DefaultYAMLDocumentationPath is the path of the swagger documentation in yaml format.
+	// DefaultYAMLDocumentationPath is the path of the openapi documentation in yaml format.
 	DefaultYAMLDocumentationPath = "/documentation/yaml"
 	defaultOpenapiVersion        = "3.0.0"
 )
 
-// Router handle the api router and the swagger schema.
+// Router handle the api router and the openapi schema.
 // api router supported out of the box are:
 // - gorilla mux
 type Router[HandlerFunc, Route any] struct {
@@ -51,11 +56,11 @@ type Options struct {
 	PathPrefix string
 }
 
-// NewRouter generate new router with swagger. Default to OpenAPI 3.0.0
+// NewRouter generate new router with openapi. Default to OpenAPI 3.0.0
 func NewRouter[HandlerFunc, Route any](router apirouter.Router[HandlerFunc, Route], options Options) (*Router[HandlerFunc, Route], error) {
-	swagger, err := generateNewValidOpenapi(options.Openapi)
+	openapi, err := generateNewValidOpenapi(options.Openapi)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
+		return nil, fmt.Errorf("%w: %s", ErrValidatingOAS, err)
 	}
 
 	var ctx = options.Context
@@ -81,7 +86,7 @@ func NewRouter[HandlerFunc, Route any](router apirouter.Router[HandlerFunc, Rout
 
 	return &Router[HandlerFunc, Route]{
 		router:                router,
-		swaggerSchema:         swagger,
+		swaggerSchema:         openapi,
 		context:               ctx,
 		yamlDocumentationPath: yamlDocumentationPath,
 		jsonDocumentationPath: jsonDocumentationPath,
@@ -104,46 +109,46 @@ func (r Router[HandlerFunc, Route]) SubRouter(router apirouter.Router[HandlerFun
 	}, nil
 }
 
-func generateNewValidOpenapi(swagger *openapi3.T) (*openapi3.T, error) {
-	if swagger == nil {
-		return nil, fmt.Errorf("swagger is required")
+func generateNewValidOpenapi(openapi *openapi3.T) (*openapi3.T, error) {
+	if openapi == nil {
+		return nil, fmt.Errorf("openapi is required")
 	}
-	if swagger.OpenAPI == "" {
-		swagger.OpenAPI = defaultOpenapiVersion
+	if openapi.OpenAPI == "" {
+		openapi.OpenAPI = defaultOpenapiVersion
 	}
-	if swagger.Paths == nil {
-		swagger.Paths = &openapi3.Paths{}
-	}
-
-	if swagger.Info == nil {
-		return nil, fmt.Errorf("swagger info is required")
-	}
-	if swagger.Info.Title == "" {
-		return nil, fmt.Errorf("swagger info title is required")
-	}
-	if swagger.Info.Version == "" {
-		return nil, fmt.Errorf("swagger info version is required")
+	if openapi.Paths == nil {
+		openapi.Paths = &openapi3.Paths{}
 	}
 
-	return swagger, nil
+	if openapi.Info == nil {
+		return nil, fmt.Errorf("openapi info is required")
+	}
+	if openapi.Info.Title == "" {
+		return nil, fmt.Errorf("openapi info title is required")
+	}
+	if openapi.Info.Version == "" {
+		return nil, fmt.Errorf("openapi info version is required")
+	}
+
+	return openapi, nil
 }
 
 // GenerateAndExposeOpenapi creates a /documentation/json route on router and
 // expose the generated swagger
 func (r Router[_, _]) GenerateAndExposeOpenapi() error {
 	if err := r.swaggerSchema.Validate(r.context); err != nil {
-		return fmt.Errorf("%w: %s", ErrValidatingSwagger, err)
+		return fmt.Errorf("%w: %s", ErrValidatingOAS, err)
 	}
 
 	jsonSwagger, err := r.swaggerSchema.MarshalJSON()
 	if err != nil {
-		return fmt.Errorf("%w json marshal: %s", ErrGenerateSwagger, err)
+		return fmt.Errorf("%w json marshal: %s", ErrGenerateOAS, err)
 	}
 	r.router.AddRoute(http.MethodGet, r.jsonDocumentationPath, r.router.SwaggerHandler("application/json", jsonSwagger))
 
 	yamlSwagger, err := yaml.JSONToYAML(jsonSwagger)
 	if err != nil {
-		return fmt.Errorf("%w yaml marshal: %s", ErrGenerateSwagger, err)
+		return fmt.Errorf("%w yaml marshal: %s", ErrGenerateOAS, err)
 	}
 	r.router.AddRoute(http.MethodGet, r.yamlDocumentationPath, r.router.SwaggerHandler("text/plain", yamlSwagger))
 
