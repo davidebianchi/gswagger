@@ -1,6 +1,8 @@
 package gorilla
 
 import (
+	"regexp"
+
 	"github.com/davidebianchi/gswagger/apirouter"
 
 	"net/http"
@@ -29,7 +31,8 @@ func (r gorillaRouter) SwaggerHandler(contentType string, blob []byte) HandlerFu
 }
 
 func (r gorillaRouter) TransformPathToOasPath(path string) string {
-	return path
+	re := regexp.MustCompile(`\{([^:}]+):[^}]*\}`)
+	return re.ReplaceAllString(path, "{$1}")
 }
 
 func NewRouter(router *mux.Router) apirouter.Router[HandlerFunc, Route] {
