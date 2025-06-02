@@ -64,3 +64,87 @@ func TestGorillaMuxRouter(t *testing.T) {
 		})
 	})
 }
+
+func TestTransformPath(t *testing.T) {
+	testCases := []struct {
+		name         string
+		path         string
+		expectedPath string
+	}{
+		{
+			name:         "only /",
+			path:         "/",
+			expectedPath: "/",
+		},
+		{
+			name:         "without params",
+			path:         "/foo",
+			expectedPath: "/foo",
+		},
+		{
+			name:         "without params ending with /",
+			path:         "/foo/",
+			expectedPath: "/foo/",
+		},
+		{
+			name:         "with params",
+			path:         "/foo/{par1}",
+			expectedPath: "/foo/{par1}",
+		},
+		{
+			name:         "with params ending with /",
+			path:         "/foo/{par1}/",
+			expectedPath: "/foo/{par1}/",
+		},
+		{
+			name:         "with multiple params",
+			path:         "/{par1}/{par2}/{par3}",
+			expectedPath: "/{par1}/{par2}/{par3}",
+		},
+		{
+			name:         "with multiple params ending with /",
+			path:         "/{par1}/{par2}/{par3}/",
+			expectedPath: "/{par1}/{par2}/{par3}/",
+		},
+		{
+			name:         "with multiple params in a segment",
+			path:         "/foo/{par2}{par3}",
+			expectedPath: "/foo/{par2}{par3}",
+		},
+		{
+			name:         "with multiple params in a segment ending with /",
+			path:         "/foo/{par2}{par3}/",
+			expectedPath: "/foo/{par2}{par3}/",
+		},
+		{
+			name:         "with regex",
+			path:         "/foo/{par1:[0-9]}/{par2:[a-z]}",
+			expectedPath: "/foo/{par1}/{par2}",
+		},
+		{
+			name:         "with regex ending with /",
+			path:         "/foo/{par1:[0-9]}/{par2:[a-z]}/",
+			expectedPath: "/foo/{par1}/{par2}/",
+		},
+		{
+			name:         "with multiple params in a segment and the regex",
+			path:         "/foo/{par2:[0-9]}{par3:a|b}/",
+			expectedPath: "/foo/{par2}{par3}/",
+		},
+		{
+			name:         "with multiple params in a segment and the regex ending with /",
+			path:         "/foo/{par2:[0-9]}{par3:\\w+}/",
+			expectedPath: "/foo/{par2}{par3}/",
+		},
+	}
+
+	router := NewRouter(mux.NewRouter())
+
+	for _, test := range testCases {
+
+		t.Run(test.name, func(t *testing.T) {
+			actual := router.TransformPathToOasPath(test.path)
+			require.Equal(t, test.expectedPath, actual)
+		})
+	}
+}

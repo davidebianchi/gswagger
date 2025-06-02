@@ -5,6 +5,25 @@
   },
   "openapi": "3.0.0",
   "paths": {
+    "/foo/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/hello": {
       "get": {
         "responses": {

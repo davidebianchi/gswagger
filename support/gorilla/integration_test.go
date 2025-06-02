@@ -39,6 +39,26 @@ func TestGorillaIntegration(t *testing.T) {
 		body := readBody(t, w.Result().Body)
 		require.Equal(t, "OK", body)
 
+		t.Run("api with regex", func(t *testing.T) {
+			t.Run("router exposes correctly api", func(t *testing.T) {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/foo/8", nil)
+
+				muxRouter.ServeHTTP(w, r)
+
+				require.Equal(t, http.StatusOK, w.Result().StatusCode)
+			})
+
+			t.Run("router exposes correctly api", func(t *testing.T) {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/foo/10", nil)
+
+				muxRouter.ServeHTTP(w, r)
+
+				require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+			})
+		})
+
 		t.Run("and generate swagger", func(t *testing.T) {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, swagger.DefaultJSONDocumentationPath, nil)
@@ -137,6 +157,9 @@ func setupSwagger(t *testing.T) (*mux.Router, *SwaggerRouter) {
 	require.NoError(t, err)
 
 	_, err = router.AddRoute(http.MethodPost, "/hello/{value}", okHandler, swagger.Definitions{})
+	require.NoError(t, err)
+
+	_, err = router.AddRoute(http.MethodGet, "/foo/{id:0-9}", okHandler, swagger.Definitions{})
 	require.NoError(t, err)
 
 	return muxRouter, router
