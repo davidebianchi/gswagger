@@ -1,6 +1,6 @@
 module github.com/davidebianchi/gswagger
 
-go 1.20
+go 1.24
 
 require (
 	github.com/getkin/kin-openapi v0.126.0
